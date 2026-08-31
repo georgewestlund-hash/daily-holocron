@@ -551,7 +551,29 @@ if ($previous) {
 # settles the rest. Diffs stop being readable, which is what the change report
 # above is for.
 $json = $payload | ConvertTo-Json -Depth 12 -Compress
+# Windows PowerShell 5.1 additionally escapes & < > ' as \u00xx for HTML safety;
+# pwsh 7 leaves them literal. Settle on the literal form, which is valid JSON
+# under both. The lookbehind avoids touching a sequence whose backslash is
+# itself escaped.
+$json = [regex]::Replace($json, '(?<!\\)\\u00(26|3[ce]|27)',
+    { param($m) [string][char][Convert]::ToInt32($m.Groups[1].Value, 16) }, 'IgnoreCase')
+# Then escape everything non-ASCII, which 5.1 does and 7 does not.
 $json = [regex]::Replace($json, '[^\x00-\x7F]', { param($m) '\u{0:x4}' -f [int][char]$m.Value })
+
+# generatedAt alone would differ on every run and commit a file whose data is
+# unchanged, which is exactly the churn the six-hourly job must not produce.
+# When nothing but the clock moved, keep the old stamp and the old bytes. The
+# field then means "when the lesson data last changed", which is what the board
+# reports and what anyone actually wants to know.
+$stampOnly = $false
+if (Test-Path $jsonPath) {
+    $stampRx = '"generatedAt":"[^"]*"'
+    $old = [System.IO.File]::ReadAllText($jsonPath)
+    if ([regex]::Replace($json, $stampRx, '""') -eq [regex]::Replace($old, $stampRx, '""')) {
+        $json = $old
+        $stampOnly = $true
+    }
+}
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($jsonPath, $json, $utf8NoBom)
 
@@ -562,6 +584,7 @@ Write-Host "  total records=$($allRecords.Count)  with content=$($payload.withCo
 foreach ($w in $allWarnings) { Write-Host "  ! $w" }
 
 if ($null -eq $previous) { Write-Host "  (no previous schedule.json to compare against)" }
+elseif ($stampOnly) { Write-Host "  no change at all - file left byte-identical, nothing to commit" }
 elseif ($changes.Count -eq 0) { Write-Host "  no lesson content changed since the last run" }
 else {
     Write-Host "  $($changes.Count) record(s) changed since the last run:"

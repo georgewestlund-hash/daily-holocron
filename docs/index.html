@@ -550,7 +550,7 @@ class Component extends DCLogic {
     const n = MY.filter(b => this.deckRecord(b)).length;
     const at = this.deck.meta.generatedAt;
     const when = at ? new Date(at).toLocaleString() : 'unknown';
-    return n + ' of ' + MY.length + ' classes have deck content for this date · data refreshed ' + when;
+    return n + ' of ' + MY.length + ' classes have deck content for this date · lesson data last changed ' + when;
   }
   /* Version 1 cached deck text in localStorage. Those copies cannot be told
      apart from something you typed, so they would keep shadowing the slides
