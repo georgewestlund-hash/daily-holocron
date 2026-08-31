@@ -1,0 +1,6 @@
+# Downloaded deck — regenerated on every extractor run, no reason to version it.
+docs/data/deck.pptx
+docs/data/*.tmp
+
+# Local scratch
+*.log
