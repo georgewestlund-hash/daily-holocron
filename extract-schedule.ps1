@@ -161,6 +161,39 @@ function Parse-DateHeader {
     }
 }
 
+$MonthNames = @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+
+# True if the slide's notes line explicitly names this date ("December 10" or "12/10").
+function Note-NamesDate {
+    param([string]$Note, [string]$IsoDate)
+    if ([string]::IsNullOrWhiteSpace($Note)) { return $false }
+    $d = [datetime]::ParseExact($IsoDate, 'yyyy-MM-dd', $null)
+    $long = $MonthNames[$d.Month - 1] + '\s+' + $d.Day + '\b'
+    $numeric = '\b' + $d.Month + '\s*/\s*' + $d.Day + '\b'
+    return ($Note -match "(?i)$long") -or ($Note -match $numeric)
+}
+
+# Maps a deck rotation label to the board's day-type code: 1-7, X, A, B, Bn.
+function Get-DayType {
+    param([string]$Rotation, [string]$Note, [string]$IsoDate)
+    if ([string]::IsNullOrWhiteSpace($Rotation)) { return $null }
+    $m = [regex]::Match($Rotation, '(?i)day\s*([1-7])\b')
+    if ($m.Success) { return $m.Groups[1].Value }
+    if ($Rotation -match '(?i)x\s*day') { return 'X' }
+    # The deck sometimes labels an A Block day "B BLOCK (A-D)". The period range
+    # is authoritative: A-D means A Block, E-G means B Block.
+    if ($Rotation -match '(?i)block') {
+        if ($Rotation -match '(?i)\(\s*A\s*-\s*D\s*\)') { return 'A' }
+        if ($Rotation -match '(?i)\(\s*E\s*-\s*G\s*\)') {
+            if ($Note -match '(?i)no\s+late\s+start' -and (Note-NamesDate -Note $Note -IsoDate $IsoDate)) { return 'Bn' }
+            return 'B'
+        }
+        if ($Rotation -match '(?i)^\s*A\s*BLOCK') { return 'A' }
+        if ($Rotation -match '(?i)^\s*B\s*BLOCK') { return 'B' }
+    }
+    return $null
+}
+
 function Normalize-Period {
     param([string]$Text)
     $t = (Clean-Line $Text)
@@ -191,6 +224,7 @@ $slideEntries = $zip.Entries |
 $records = @()
 $cycles = @()
 $warnings = @()
+$calendar = @{}
 
 foreach ($entry in $slideEntries) {
     $slideNo = [int](($entry.FullName -replace '[^0-9]', ''))
@@ -304,8 +338,18 @@ foreach ($entry in $slideEntries) {
         if ($d.weekdayMismatch) {
             $warnings += "slide${slideNo}: header says $($d.statedWeekday) for $($d.date), which is a $($d.weekday)"
         }
+        $dayType = Get-DayType -Rotation $rotation -Note $notes -IsoDate $d.date
+        if ($null -eq $dayType -and $rotation -ne '') {
+            $warnings += "slide${slideNo}: could not map rotation '$rotation' on $($d.date) to a day type"
+        }
+        if ($null -ne $dayType) {
+            if ($calendar.ContainsKey($d.date) -and $calendar[$d.date] -ne $dayType) {
+                $warnings += "calendar conflict on $($d.date): '$($calendar[$d.date])' vs '$dayType' (slide $slideNo)"
+            }
+            $calendar[$d.date] = $dayType
+        }
         $days[$c] = [pscustomobject]@{
-            date = $d.date; weekday = $d.weekday; rotation = $rotation; dayNote = $dayNote
+            date = $d.date; weekday = $d.weekday; rotation = $rotation; dayType = $dayType; dayNote = $dayNote
         }
         $dayList += $days[$c]
     }
@@ -355,6 +399,7 @@ foreach ($entry in $slideEntries) {
                 date         = $day.date
                 weekday      = $day.weekday
                 rotationDay  = $day.rotation
+                dayType      = $day.dayType
                 dayNote      = $day.dayNote
                 period       = $period
                 cycle        = $cycleNo
@@ -375,6 +420,9 @@ $zip.Dispose()
 
 $records = $records | Sort-Object date, period
 
+$calendarOrdered = [ordered]@{}
+foreach ($k in ($calendar.Keys | Sort-Object)) { $calendarOrdered[$k] = $calendar[$k] }
+
 $payload = [pscustomobject]@{
     source        = @{
         deckId = $DeckId
@@ -388,6 +436,8 @@ $payload = [pscustomobject]@{
     recordCount   = $records.Count
     withContent   = (@($records | Where-Object { $_.hasContent }).Count)
     warnings      = [string[]]$warnings
+    # date -> board day-type code (1-7, X, A, B, Bn), for the board's CAL lookup.
+    calendar      = $calendarOrdered
     cycles        = @($cycles)
     schedule      = @($records)
 }
