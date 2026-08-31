@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Holocron</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23201e1d'/><rect x='9' y='9' width='14' height='14' fill='none' stroke='%23ec3013' stroke-width='3' transform='rotate(45 16 16)'/></svg>">
 <script src="./support.js"></script>
 </head>
 <body>
@@ -13,7 +14,6 @@
 <script src="_ds/modernist-4c00d4bb-eb65-4569-ab6f-07adc0316e1a/_ds_bundle.js"></script>
 <script src="sat-words.js"></script>
 <script src="lit-terms.js"></script>
-<script src="image-slot.js"></script>
 <style>
   html, body { margin:0; padding:0; height:100%; overflow:hidden; background:var(--color-bg); }
   a { color:var(--color-accent-700); }
@@ -45,12 +45,6 @@
 
   <header style="display:flex; flex-wrap:wrap; align-items:stretch; border-bottom:2px solid var(--color-divider); flex:none">
     <div style="padding:16px 20px; display:flex; align-items:center; gap:14px; flex:0 1 auto; min-width:0">
-      <div style="width:clamp(76px,7vh,92px); height:clamp(76px,7vh,92px); flex:none; border:2px solid var(--color-divider); position:relative">
-        <image-slot id="logo-A" shape="rect" fit="cover" style="display:{{ showA }}; width:100%; height:100%" placeholder="A"></image-slot>
-        <image-slot id="logo-D" shape="rect" fit="cover" style="display:{{ showD }}; width:100%; height:100%" placeholder="D"></image-slot>
-        <image-slot id="logo-G" shape="rect" fit="cover" style="display:{{ showG }}; width:100%; height:100%" placeholder="G"></image-slot>
-        <image-slot id="logo-E" shape="rect" fit="cover" style="display:{{ showE }}; width:100%; height:100%" placeholder="E"></image-slot>
-      </div>
       <div style="display:flex; flex-direction:column; justify-content:center; gap:6px; min-width:0">
       <div style="display:flex; align-items:center; gap:10px; min-width:0">
         <button onClick="{{ prevDay }}" class="btn btn-ghost" style="font-size:20px; line-height:1; padding:2px 9px; cursor:pointer; flex:none" title="Previous day">‹</button>
