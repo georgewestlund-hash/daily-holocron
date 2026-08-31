@@ -39,13 +39,20 @@ jobs:
             echo "No change in schedule.json"
           fi
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      # Publishing is opt-in. A private repo on a free plan cannot serve Pages,
+      # and leaving the deploy enabled would fail every run. To turn it on later,
+      # set the repository variable ENABLE_PAGES to "true" (Settings > Secrets and
+      # variables > Actions > Variables) and set Pages' source to GitHub Actions.
+      - if: vars.ENABLE_PAGES == 'true'
+        uses: actions/configure-pages@v5
+      - if: vars.ENABLE_PAGES == 'true'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
   deploy:
     needs: refresh
+    if: vars.ENABLE_PAGES == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
