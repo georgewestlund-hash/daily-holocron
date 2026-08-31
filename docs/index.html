@@ -329,6 +329,8 @@ const LABELS = { A:'A · 8 Honors Lit', D:'D · 8 Honors Lit', G:'G · 8 Honors 
 // the rail overrides them at runtime and persists the choice.
 const PALETTE = ['#ec3013', '#ff5a1f', '#ffc61a', '#22c55e', '#2563eb', '#1c4f9c', '#1f6b47', '#6b2d5b'];
 const SETTINGS_KEY = 'cb.settings';
+const VERSION_KEY = 'cb.version';
+const STORE_VERSION = 2;
 
 class Component extends DCLogic {
   state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0, full: false, settings: (() => {
@@ -368,6 +370,7 @@ class Component extends DCLogic {
         return n;
       });
     }, 1000);
+    this.migrateStore();
     this.restore();
     this.applyWord(false);
     this.loadDeck();
@@ -508,15 +511,17 @@ class Component extends DCLogic {
         const el = sec.querySelector('[data-key="' + k + '"]');
         if (!el) return;
         const storeKey = this.keyFor(el);
+        if (force) { try { localStorage.removeItem(storeKey); } catch (e) {} }
         let saved = null;
         try { saved = localStorage.getItem(storeKey); } catch (e) {}
-        if (!force && saved !== null && saved !== '') return;   // your edit wins
-        if (!force && !map[k]) return;                          // nothing to fill
+        if (saved !== null && saved !== '') return;   // your own edit wins
+        // Deck text is deliberately NOT written to storage. Storage holds only
+        // what you typed, via the input listener. Caching the deck value here
+        // would shadow any later edit to the slides, since a cached copy is
+        // indistinguishable from a real edit on the next load. Assigning even
+        // an empty string also clears the previous date's text when you page
+        // to a day the decks have nothing for.
         el.innerText = map[k];
-        try {
-          if (map[k]) localStorage.setItem(storeKey, map[k]);
-          else localStorage.removeItem(storeKey);
-        } catch (e) {}
       });
     });
   }
@@ -547,6 +552,24 @@ class Component extends DCLogic {
     const when = at ? new Date(at).toLocaleString() : 'unknown';
     return n + ' of ' + MY.length + ' classes have deck content for this date · data refreshed ' + when;
   }
+  /* Version 1 cached deck text in localStorage. Those copies cannot be told
+     apart from something you typed, so they would keep shadowing the slides
+     forever. Clear them once. */
+  migrateStore() {
+    let v = 0;
+    try { v = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10) || 0; } catch (e) {}
+    if (v >= STORE_VERSION) return;
+    try {
+      const kill = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf('cb.') === 0 && k !== SETTINGS_KEY && k !== VERSION_KEY) kill.push(k);
+      }
+      kill.forEach(k => localStorage.removeItem(k));
+      localStorage.setItem(VERSION_KEY, String(STORE_VERSION));
+      if (kill.length) console.info('[board] cleared ' + kill.length + ' cached field(s) from the previous storage format');
+    } catch (e) {}
+  }
   restore() {
     document.querySelectorAll('[data-key]').forEach(el => {
       let v = null;
@@ -559,7 +582,7 @@ class Component extends DCLogic {
       const kill = [];
       // Clears board content only. Display settings are deliberately kept —
       // resetting the projector's look is not what "Clear board" means.
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cb.') === 0 && k !== SETTINGS_KEY) kill.push(k); }
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cb.') === 0 && k !== SETTINGS_KEY && k !== VERSION_KEY) kill.push(k); }
       kill.forEach(k => localStorage.removeItem(k));
     } catch (e) {}
     location.reload();
