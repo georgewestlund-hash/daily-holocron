@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Holocron</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23201e1d'/><rect x='9' y='9' width='14' height='14' fill='none' stroke='%23ec3013' stroke-width='3' transform='rotate(45 16 16)'/></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20fill='%23201e1d'/%3E%3Crect%20x='9'%20y='9'%20width='14'%20height='14'%20fill='none'%20stroke='%23ec3013'%20stroke-width='3'%20transform='rotate(45%2016%2016)'/%3E%3C/svg%3E">
 <script src="./support.js"></script>
 </head>
 <body>
@@ -265,6 +265,25 @@
           <button onClick="{{ set15 }}" class="btn btn-secondary" style="flex:1; font-size:clamp(13px,1.7vh,16px); padding:4px 0; justify-content:center; cursor:pointer">15</button>
         </div>
       </div>
+
+      <div data-rail="1" style="padding:clamp(8px,1.3vh,14px) 22px; border-top:2px solid var(--color-divider); display:flex; flex-direction:column; gap:6px; flex:none">
+        <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">Display</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+        <div style="display:flex; align-items:center; gap:5px">
+          <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Stars</span>
+          <button onClick="{{ bdNone }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgNone }}; color:{{ bdFgNone }}">Off</button>
+          <button onClick="{{ bdSubtle }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgSubtle }}; color:{{ bdFgSubtle }}">Low</button>
+          <button onClick="{{ bdVisible }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgVisible }}; color:{{ bdFgVisible }}">Med</button>
+          <button onClick="{{ bdBold }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgBold }}; color:{{ bdFgBold }}">High</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px">
+          <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Color</span>
+          <button onClick="{{ cycA }}" title="Cycle A period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swA }}; color:{{ swFgA }}">A</button>
+          <button onClick="{{ cycD }}" title="Cycle D period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swD }}; color:{{ swFgD }}">D</button>
+          <button onClick="{{ cycG }}" title="Cycle G period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swG }}; color:{{ swFgG }}">G</button>
+          <button onClick="{{ cycE }}" title="Cycle E period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swE }}; color:{{ swFgE }}">E</button>
+          <button onClick="{{ toggleTheme }}" class="btn btn-secondary" style="flex:none; font-size:clamp(11px,1.4vh,14px); padding:3px 8px; cursor:pointer" title="Switch light and dark">{{ themeLabel }}</button>
+        </div>
+      </div>
     </aside>
   </main>
 </div>
@@ -305,9 +324,38 @@ const CAL = {
 };
 const MY = ['A','D','G','E'];
 const LABELS = { A:'A · 8 Honors Lit', D:'D · 8 Honors Lit', G:'G · 8 Honors Lit', E:'E · 8 ECP Lit' };
+// Backdrop intensity and class colours were canvas props, fixed at their
+// defaults once the board runs outside the design editor. The Display panel in
+// the rail overrides them at runtime and persists the choice.
+const PALETTE = ['#ec3013', '#ff5a1f', '#ffc61a', '#22c55e', '#2563eb', '#1c4f9c', '#1f6b47', '#6b2d5b'];
+const SETTINGS_KEY = 'cb.settings';
 
 class Component extends DCLogic {
-  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0, full: false };
+  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0, full: false, settings: (() => {
+    // Read synchronously so the board paints with the saved look, not a flash
+    // of the defaults.
+    try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch (e) { return {}; }
+  })() };
+
+  /* Display settings fall back to the original canvas prop when unset. */
+  setting(key) {
+    const s = (this.state && this.state.settings) || {};
+    return s[key] !== undefined ? s[key] : this.props[key];
+  }
+  setSetting(key, val) {
+    this.setState(st => {
+      const next = Object.assign({}, st.settings, { [key]: val });
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(next)); } catch (e) {}
+      return { settings: next };
+    });
+  }
+  setBackdrop = level => () => this.setSetting('backdrop', level);
+  toggleTheme = () => this.setSetting('theme', this.setting('theme') === 'Dark' ? 'Light' : 'Dark');
+  cycleColor = board => () => {
+    const key = 'color' + board;
+    const i = PALETTE.indexOf(this.setting(key));
+    this.setSetting(key, PALETTE[(i + 1) % PALETTE.length]);
+  };
 
   componentDidMount() {
     this.tick = setInterval(() => {
@@ -509,7 +557,9 @@ class Component extends DCLogic {
   clearSaved = () => {
     try {
       const kill = [];
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cb.') === 0) kill.push(k); }
+      // Clears board content only. Display settings are deliberately kept —
+      // resetting the projector's look is not what "Clear board" means.
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cb.') === 0 && k !== SETTINGS_KEY) kill.push(k); }
       kill.forEach(k => localStorage.removeItem(k));
     } catch (e) {}
     location.reload();
@@ -632,13 +682,13 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, d = s.now, vd = this.viewDate();
     const CLASS_COLORS = {
-      A: this.props.colorA || '#ec3013',
-      D: this.props.colorD || '#2563eb',
-      G: this.props.colorG || '#22c55e',
-      E: this.props.colorE || '#ffc61a'
+      A: this.setting('colorA') || '#ec3013',
+      D: this.setting('colorD') || '#2563eb',
+      G: this.setting('colorG') || '#22c55e',
+      E: this.setting('colorE') || '#ffc61a'
     };
     const accent = CLASS_COLORS[this.activeBoard()] || '#ec3013';
-    const dark = (this.props.theme || 'Light') === 'Dark';
+    const dark = (this.setting('theme') || 'Light') === 'Dark';
     const mix = (c, w, p) => 'color-mix(in oklch, ' + c + ', ' + w + ' ' + p + '%)';
     const lum = hex => {
       const h = (hex || '').replace('#', '');
@@ -652,8 +702,11 @@ class Component extends DCLogic {
     const La = lum(accent);
     const ratio = (l1, l2) => (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
     const accentFg = ratio(La, lum('#ffffff')) >= ratio(La, lum('#201e1d')) ? '#ffffff' : '#201e1d';
+    // Swatch letters need the same contrast test — white on the yellow E is
+    // unreadable, black on the deep blue D equally so.
+    const fgOn = c => { const l = lum(c); return ratio(l, lum('#ffffff')) >= ratio(l, lum('#201e1d')) ? '#ffffff' : '#201e1d'; };
     const light = La > 0.25;
-    const backdrop = this.props.backdrop || 'Visible';
+    const backdrop = this.setting('backdrop') || 'Visible';
     const gain = { None: 0, Subtle: 0.55, Visible: 1, Bold: 1.7 }[backdrop] || 0;
     const star = dark ? 'rgba(255,255,255,' : 'rgba(32,30,29,';
     const dots = [[6,11,2.4,.55],[19,42,1.6,.4],[31,7,1.4,.34],[44,27,3,.5],[57,63,1.6,.36],[69,15,1.4,.4],[81,48,2.6,.46],[93,29,1.4,.34],[12,71,1.6,.34],[26,88,2.6,.44],[38,58,1.4,.32],[52,94,1.6,.36],[64,79,2.4,.42],[77,66,1.6,.34],[88,91,1.4,.32],[3,54,1.6,.34],[47,4,1.4,.3],[72,36,1.6,.34],[15,22,3.4,.6],[59,37,1.2,.28],[84,73,3.2,.52],[35,45,1.2,.26]];
@@ -724,7 +777,29 @@ class Component extends DCLogic {
       reloadDeck: this.reloadDeck,
       deckStamp: this.deckStamp(),
       toggleFull: this.toggleFull,
-      fullLabel: this.state.full ? 'Exit full screen' : 'Full screen'
+      fullLabel: this.state.full ? 'Exit full screen' : 'Full screen',
+      toggleTheme: this.toggleTheme,
+      themeLabel: dark ? 'Light' : 'Dark',
+      bdNone: this.setBackdrop('None'),
+      bdSubtle: this.setBackdrop('Subtle'),
+      bdVisible: this.setBackdrop('Visible'),
+      bdBold: this.setBackdrop('Bold'),
+      bdBgNone: backdrop === 'None' ? accent : 'transparent',
+      bdFgNone: backdrop === 'None' ? accentFg : 'inherit',
+      bdBgSubtle: backdrop === 'Subtle' ? accent : 'transparent',
+      bdFgSubtle: backdrop === 'Subtle' ? accentFg : 'inherit',
+      bdBgVisible: backdrop === 'Visible' ? accent : 'transparent',
+      bdFgVisible: backdrop === 'Visible' ? accentFg : 'inherit',
+      bdBgBold: backdrop === 'Bold' ? accent : 'transparent',
+      bdFgBold: backdrop === 'Bold' ? accentFg : 'inherit',
+      cycA: this.cycleColor('A'),
+      cycD: this.cycleColor('D'),
+      cycG: this.cycleColor('G'),
+      cycE: this.cycleColor('E'),
+      swA: CLASS_COLORS.A, swFgA: fgOn(CLASS_COLORS.A),
+      swD: CLASS_COLORS.D, swFgD: fgOn(CLASS_COLORS.D),
+      swG: CLASS_COLORS.G, swFgG: fgOn(CLASS_COLORS.G),
+      swE: CLASS_COLORS.E, swFgE: fgOn(CLASS_COLORS.E)
     };
     MY.forEach(b => {
       vals['show' + b] = act === b ? 'block' : 'none';
