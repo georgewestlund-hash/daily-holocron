@@ -28,9 +28,21 @@
 param(
     # Site root. schedule.json is written to <SiteDir>/data/schedule.json.
     [string]$SiteDir = (Join-Path $PSScriptRoot 'docs'),
-    [string]$DeckId = '1VDpCkYyOhH1SllDQPwJxX81AXgIs8XzHlapY4RAvHaU',
-    [int]$FallSchoolYear = 2026
+    [int]$FallSchoolYear = 2026,
+    # Override to parse a single deck in isolation (testing). Normally leave unset
+    # so all courses in $Courses below are parsed and merged.
+    [string]$DeckId,
+    [string[]]$DeckPeriods
 )
+
+# One entry per course. `periods` selects which rows of that deck's rotation grid
+# belong to the course, so the merged output has exactly one record per
+# (period, date) across all decks.
+$Courses = @(
+    @{ id = '1qk_g2tVKqYpposzORBzEtqEe3fsdVhcUfih14d4z46A'; label = '8 Honors Lit'; periods = @('A', 'D', 'G') },
+    @{ id = '1VDpCkYyOhH1SllDQPwJxX81AXgIs8XzHlapY4RAvHaU'; label = '8 ECP Lit'; periods = @('E') }
+)
+if ($DeckId) { $Courses = @(@{ id = $DeckId; label = 'deck'; periods = $DeckPeriods }) }
 
 $ErrorActionPreference = 'Stop'
 # Windows PowerShell 5.1 defaults to TLS 1.0; pwsh on Linux (GitHub Actions) does not
@@ -41,8 +53,15 @@ if (-not $SiteDir) { $SiteDir = Join-Path (Get-Location).Path 'docs' }
 $dataDir = Join-Path $SiteDir 'data'
 if (-not (Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Force | Out-Null }
 
-$deckPath = Join-Path $dataDir 'deck.pptx'
 $jsonPath = Join-Path $dataDir 'schedule.json'
+
+# Parses one deck end to end and returns its records, cycles, calendar and
+# warnings. Defined before the helper functions it calls, which is fine —
+# PowerShell resolves function names at call time, not definition time.
+function Get-DeckSchedule {
+param([string]$DeckId, [string]$DataDir, [int]$FallSchoolYear)
+
+$deckPath = Join-Path $DataDir "deck-$DeckId.pptx"
 
 # ---------------------------------------------------------------- download ---
 $exportUrl = "https://docs.google.com/presentation/d/$DeckId/export/pptx"
@@ -225,6 +244,7 @@ $records = @()
 $cycles = @()
 $warnings = @()
 $calendar = @{}
+$deckTitle = ''
 
 foreach ($entry in $slideEntries) {
     $slideNo = [int](($entry.FullName -replace '[^0-9]', ''))
@@ -252,6 +272,7 @@ foreach ($entry in $slideEntries) {
         elseif ($title -eq '') { $title = $t }
     }
     if ($title -eq '') { continue }   # blank / divider slide
+    if ($deckTitle -eq '') { $deckTitle = $title }   # slide 1 is the deck's cover
 
     # --- classify the two tables ---
     $rotationRows = $null
@@ -273,7 +294,8 @@ foreach ($entry in $slideEntries) {
     }
 
     if ($null -eq $rotationRows) {
-        $warnings += "slide${slideNo}: no rotation grid found ('$title')"
+        # Slide 1 is the cover and legitimately has no grid.
+        if ($slideNo -ne 1) { $warnings += "slide${slideNo}: no rotation grid found ('$title')" }
         continue
     }
 
@@ -418,34 +440,85 @@ foreach ($entry in $slideEntries) {
 }
 $zip.Dispose()
 
-$records = $records | Sort-Object date, period
+return [pscustomobject]@{
+    deckId     = $DeckId
+    exportUrl  = $exportUrl
+    deckTitle  = $deckTitle
+    slideCount = $slideEntries.Count
+    records    = @($records)
+    cycles     = @($cycles)
+    calendar   = $calendar
+    warnings   = @($warnings)
+}
+}   # end Get-DeckSchedule
+
+# --------------------------------------------------------------------- run ---
+$allRecords = @()
+$allWarnings = @()
+$sources = @()
+$calendar = @{}
+$cycles = $null
+
+foreach ($course in $Courses) {
+    $deck = Get-DeckSchedule -DeckId $course.id -DataDir $dataDir -FallSchoolYear $FallSchoolYear
+
+    $kept = $deck.records
+    if ($course.periods) { $kept = @($deck.records | Where-Object { $course.periods -contains $_.period }) }
+    foreach ($r in $kept) { Add-Member -InputObject $r -NotePropertyName 'course' -NotePropertyValue $course.label -Force }
+
+    $covered = @($kept | Select-Object -ExpandProperty period -Unique | Sort-Object)
+    if ($course.periods) {
+        $absent = @($course.periods | Where-Object { $covered -notcontains $_ })
+        foreach ($p in $absent) { $allWarnings += "$($course.label): no rows found for period $p" }
+    }
+
+    $allRecords += $kept
+    $allWarnings += @($deck.warnings | ForEach-Object { "$($course.label): $_" })
+    $sources += [pscustomobject]@{
+        course = $course.label; deckId = $deck.deckId; deckTitle = $deck.deckTitle
+        exportUrl = $deck.exportUrl; periods = [string[]]$course.periods
+        slideCount = $deck.slideCount; recordsUsed = $kept.Count
+    }
+
+    # Every deck follows the same school rotation, so the calendars must agree.
+    # A conflict means one deck's dates drifted and is worth surfacing.
+    foreach ($k in $deck.calendar.Keys) {
+        if ($calendar.ContainsKey($k) -and $calendar[$k] -ne $deck.calendar[$k]) {
+            $allWarnings += "calendar conflict on ${k}: '$($calendar[$k])' vs '$($deck.calendar[$k])' ($($course.label))"
+        }
+        $calendar[$k] = $deck.calendar[$k]
+    }
+    if ($null -eq $cycles) { $cycles = $deck.cycles }
+}
+
+$dupes = @($allRecords | Group-Object { $_.date + '|' + $_.period } | Where-Object { $_.Count -gt 1 })
+foreach ($d in $dupes) { $allWarnings += "duplicate record for $($d.Name) from $((($d.Group | Select-Object -ExpandProperty course -Unique)) -join ' + ')" }
+
+$allRecords = $allRecords | Sort-Object date, period
 
 $calendarOrdered = [ordered]@{}
 foreach ($k in ($calendar.Keys | Sort-Object)) { $calendarOrdered[$k] = $calendar[$k] }
 
 $payload = [pscustomobject]@{
-    source        = @{
-        deckId = $DeckId
-        exportUrl = $exportUrl
-        publishedUrl = "https://docs.google.com/presentation/d/e/2PACX-1vS9rZ7LZjXp5sClif8PN63Ecbf-O1GeDDXLUz35JSjXjJaK_nj1sRRDUpxi2wrVIPMzd5G-6ijAxxRD/pub"
-    }
+    sources       = @($sources)
     generatedAt   = (Get-Date).ToString('o')
     schoolYear    = "$FallSchoolYear-$($FallSchoolYear + 1)"
-    slideCount    = $slideEntries.Count
     cycleCount    = $cycles.Count
-    recordCount   = $records.Count
-    withContent   = (@($records | Where-Object { $_.hasContent }).Count)
-    warnings      = [string[]]$warnings
+    recordCount   = $allRecords.Count
+    withContent   = (@($allRecords | Where-Object { $_.hasContent }).Count)
+    warnings      = [string[]]$allWarnings
     # date -> board day-type code (1-7, X, A, B, Bn), for the board's CAL lookup.
     calendar      = $calendarOrdered
     cycles        = @($cycles)
-    schedule      = @($records)
+    schedule      = @($allRecords)
 }
 
 $json = $payload | ConvertTo-Json -Depth 12
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($jsonPath, $json, $utf8NoBom)
 
+Write-Host ""
 Write-Host "Wrote $jsonPath"
-Write-Host "  cycles=$($cycles.Count)  records=$($records.Count)  with content=$($payload.withContent)  warnings=$($warnings.Count)"
-foreach ($w in $warnings) { Write-Host "  ! $w" }
+foreach ($s in $sources) { Write-Host "  $($s.course): periods $($s.periods -join '/') -> $($s.recordsUsed) records" }
+Write-Host "  total records=$($allRecords.Count)  with content=$($payload.withContent)  calendar days=$($calendarOrdered.Count)  warnings=$($allWarnings.Count)"
+foreach ($w in $allWarnings) { Write-Host "  ! $w" }
