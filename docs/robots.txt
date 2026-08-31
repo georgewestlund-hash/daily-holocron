@@ -1,0 +1,5 @@
+# The board is public so it can be reached remotely, but it is not meant to be
+# found. Keeping it out of search results is the difference between "reachable
+# with the link" and "the first hit for the teacher's name".
+User-agent: *
+Disallow: /
