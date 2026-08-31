@@ -55,6 +55,20 @@ if (-not (Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Fo
 
 $jsonPath = Join-Path $dataDir 'schedule.json'
 
+# Top level on purpose: the parsing helpers live inside Get-DeckSchedule and so
+# are out of scope once it returns, but this is called after the merge.
+# Unit separator keeps field boundaries out of the content itself.
+$SIG_SEP = [string][char]31
+function Get-RecordSignature {
+    param($R)
+    return ($R.objective + $SIG_SEP + (($R.lesson) -join "`n") + $SIG_SEP + (($R.study) -join "`n") + $SIG_SEP + (($R.homework) -join "`n"))
+}
+
+$previous = $null
+if (Test-Path $jsonPath) {
+    try { $previous = Get-Content $jsonPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { }
+}
+
 # Parses one deck end to end and returns its records, cycles, calendar and
 # warnings. Defined before the helper functions it calls, which is fine —
 # PowerShell resolves function names at call time, not definition time.
@@ -513,7 +527,31 @@ $payload = [pscustomobject]@{
     schedule      = @($allRecords)
 }
 
-$json = $payload | ConvertTo-Json -Depth 12
+# What moved since the last run. This is how a slides edit gets verified, and it
+# has to happen before the file is overwritten.
+$changes = @()
+if ($previous) {
+    $prevMap = @{}
+    foreach ($r in $previous.schedule) { $prevMap[$r.date + ' ' + $r.period] = $r }
+    foreach ($r in $allRecords) {
+        $k = $r.date + ' ' + $r.period
+        if (-not $prevMap.ContainsKey($k)) { $changes += "+ $k (new)"; continue }
+        if ((Get-RecordSignature $r) -ne (Get-RecordSignature $prevMap[$k])) {
+            $changes += "~ $k  $($r.course)  Lesson $($r.lessonNumber)  $($r.objective)"
+        }
+        $prevMap.Remove($k)
+    }
+    foreach ($k in ($prevMap.Keys | Sort-Object)) { $changes += "- $k (gone)" }
+}
+
+# Deterministic bytes. Windows PowerShell 5.1 and the pwsh 7 on the CI runner
+# disagree about both indentation and whether non-ASCII is escaped, so the same
+# data serialised under each produces a different file and every run looks like
+# a change. -Compress settles the whitespace; escaping non-ASCII ourselves
+# settles the rest. Diffs stop being readable, which is what the change report
+# above is for.
+$json = $payload | ConvertTo-Json -Depth 12 -Compress
+$json = [regex]::Replace($json, '[^\x00-\x7F]', { param($m) '\u{0:x4}' -f [int][char]$m.Value })
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($jsonPath, $json, $utf8NoBom)
 
@@ -522,3 +560,10 @@ Write-Host "Wrote $jsonPath"
 foreach ($s in $sources) { Write-Host "  $($s.course): periods $($s.periods -join '/') -> $($s.recordsUsed) records" }
 Write-Host "  total records=$($allRecords.Count)  with content=$($payload.withContent)  calendar days=$($calendarOrdered.Count)  warnings=$($allWarnings.Count)"
 foreach ($w in $allWarnings) { Write-Host "  ! $w" }
+
+if ($null -eq $previous) { Write-Host "  (no previous schedule.json to compare against)" }
+elseif ($changes.Count -eq 0) { Write-Host "  no lesson content changed since the last run" }
+else {
+    Write-Host "  $($changes.Count) record(s) changed since the last run:"
+    foreach ($c in $changes) { Write-Host "    $c" }
+}
