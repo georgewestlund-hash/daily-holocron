@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-4c00d4bb-eb65-4569-ab6f-07adc0316e1a/styles.css">
+<script src="_ds/modernist-4c00d4bb-eb65-4569-ab6f-07adc0316e1a/_ds_bundle.js"></script>
+<script src="sat-words.js"></script>
+<script src="lit-terms.js"></script>
+<script src="image-slot.js"></script>
+<style>
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; background:var(--color-bg); }
+  a { color:var(--color-accent-700); }
+  a:hover { color:var(--color-accent); }
+  [contenteditable]:hover { background:var(--color-neutral-100); }
+  [contenteditable]:focus { outline:2px solid var(--color-accent); outline-offset:2px; background:#fff; }
+  [contenteditable]:empty:before { content:attr(data-ph); color:var(--color-neutral-500); }
+  @media (max-height: 800px) {
+    [data-key="wodSent"] { display:none; }
+    [data-key="wodDef"] { font-size:15px; line-height:1.2; }
+    [data-key="litDef"] { font-size:14px; line-height:1.2; }
+  }
+  @media (max-height: 760px) {
+    [data-key="objective"] { font-size:20px !important; }
+    [data-key="standard"] { font-size:15px !important; }
+    [data-key="materials"] { font-size:16px !important; }
+    [data-rail] { padding-top:9px !important; padding-bottom:9px !important; }
+    [data-key="wod"] { font-size:24px !important; }
+    [data-key="litTerm"] { font-size:19px !important; }
+    [data-key="cdLabel"] { font-size:14px !important; }
+  }
+  @media (max-height: 640px) {
+    [data-key="litDef"] { display:none; }
+  }
+  @keyframes cbflash { 0%,100%{background:var(--color-bg);} 50%{background:var(--color-accent-200);} }
+</style>
+</helmet>
+<div style="height:100vh; display:flex; flex-direction:column; font-family:var(--font-body); --color-accent:{{ cAccent }}; --color-accent-200:{{ cAccent200 }}; --color-accent-400:{{ cAccent400 }}; --color-accent-600:{{ cAccent600 }}; --color-accent-700:{{ cAccent700 }}; --color-bg:{{ cBg }}; --color-text:{{ cInk }}; --color-divider:{{ cDivider }}; --color-neutral-100:{{ cN100 }}; --color-neutral-200:{{ cN200 }}; --color-neutral-500:{{ cN500 }}; --color-neutral-600:{{ cN600 }}; --color-neutral-700:{{ cN700 }}; color:var(--color-text); background-color:var(--color-bg); background-image:{{ bdImage }}; background-size:{{ bdSize }}; animation:{{ flashAnim }}">
+
+  <header style="display:flex; flex-wrap:wrap; align-items:stretch; border-bottom:2px solid var(--color-divider); flex:none">
+    <div style="padding:16px 20px; display:flex; align-items:center; gap:14px; flex:0 1 auto; min-width:0">
+      <div style="width:clamp(76px,7vh,92px); height:clamp(76px,7vh,92px); flex:none; border:2px solid var(--color-divider); position:relative">
+        <image-slot id="logo-A" shape="rect" fit="cover" style="display:{{ showA }}; width:100%; height:100%" placeholder="A"></image-slot>
+        <image-slot id="logo-D" shape="rect" fit="cover" style="display:{{ showD }}; width:100%; height:100%" placeholder="D"></image-slot>
+        <image-slot id="logo-G" shape="rect" fit="cover" style="display:{{ showG }}; width:100%; height:100%" placeholder="G"></image-slot>
+        <image-slot id="logo-E" shape="rect" fit="cover" style="display:{{ showE }}; width:100%; height:100%" placeholder="E"></image-slot>
+      </div>
+      <div style="display:flex; flex-direction:column; justify-content:center; gap:6px; min-width:0">
+      <div style="display:flex; align-items:center; gap:10px; min-width:0">
+        <button onClick="{{ prevDay }}" class="btn btn-ghost" style="font-size:20px; line-height:1; padding:2px 9px; cursor:pointer; flex:none" title="Previous day">‹</button>
+        <div style="font-family:var(--font-heading); font-size:clamp(20px,3.2vh,34px); font-weight:700; letter-spacing:-0.5px; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ dateInk }}">{{ dateStr }}</div>
+        <button onClick="{{ nextDay }}" class="btn btn-ghost" style="font-size:20px; line-height:1; padding:2px 9px; cursor:pointer; flex:none" title="Next day">›</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:17px; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ dayStr }}</span>
+        <select onChange="{{ onDayChange }}" value="{{ dayValue }}" style="font-family:var(--font-body); font-size:16px; border:2px solid var(--color-divider); background:var(--color-bg); padding:4px 6px; color:inherit">
+          <option value="auto">Today: {{ dayTypeLabel }}</option>
+          <option value="1">Day 1</option>
+          <option value="2">Day 2</option>
+          <option value="3">Day 3</option>
+          <option value="4">Day 4</option>
+          <option value="5">Day 5</option>
+          <option value="6">Day 6</option>
+          <option value="7">Day 7</option>
+          <option value="X">X Day</option>
+          <option value="A">A Block</option>
+          <option value="B">B Block (late start)</option>
+          <option value="Bn">B Block (no late start)</option>
+        </select>
+      </div>
+      </div>
+    </div>
+
+    <div style="display:flex; border-left:2px solid var(--color-divider); flex:1 1 620px; min-width:0; order:3">
+      <button onClick="{{ tapA }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgA }}; order:{{ orderA }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
+        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgA }}">A · 8 Honors</span>
+        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeA }}</span>
+        <span style="height:8px; width:100%; display:block; background:{{ barA }}; margin-top:auto"></span>
+      </button>
+      <button onClick="{{ tapD }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgD }}; order:{{ orderD }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
+        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgD }}">D · 8 Honors</span>
+        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeD }}</span>
+        <span style="height:8px; width:100%; display:block; background:{{ barD }}; margin-top:auto"></span>
+      </button>
+      <button onClick="{{ tapG }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgG }}; order:{{ orderG }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
+        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgG }}">G · 8 Honors</span>
+        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeG }}</span>
+        <span style="height:8px; width:100%; display:block; background:{{ barG }}; margin-top:auto"></span>
+      </button>
+      <button onClick="{{ tapE }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgE }}; order:{{ orderE }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
+        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgE }}">E · 8 ECP</span>
+        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeE }}</span>
+        <span style="height:8px; width:100%; display:block; background:{{ barE }}; margin-top:auto"></span>
+      </button>
+    </div>
+
+    <div style="border-left:2px solid var(--color-divider); padding:14px 18px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; flex:0 1 auto; min-width:0; margin-left:auto">
+      <div style="font-family:var(--font-heading); font-size:clamp(28px,4.6vh,50px); font-weight:700; line-height:1; letter-spacing:-1px; font-variant-numeric:tabular-nums">{{ timeStr }}</div>
+      <div style="font-size:clamp(12px,1.7vh,17px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600)">{{ periodStatus }}</div>
+      <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap">
+        <button onClick="{{ followAuto }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ autoBtn }}">Follow schedule</button>
+        <button onClick="{{ goToday }}" class="btn btn-secondary" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ todayBtn }}">Back to today</button>
+        <button onClick="{{ reloadDeck }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer" title="{{ deckStamp }}">Reload lesson</button>
+        <button onClick="{{ clearSaved }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer">Clear board</button>
+      </div>
+      <div style="font-size:11px; color:var(--color-neutral-600); margin-top:4px; max-width:340px; line-height:1.25">{{ deckStamp }}</div>
+    </div>
+  </header>
+
+  <main style="flex:1; display:grid; grid-template-columns:1fr 1fr minmax(280px,400px); min-height:0">
+
+    <section data-board="A" style="display:{{ showA }}; grid-column:1 / span 2; grid-row:1; min-height:0">
+      <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(19px,2.6vh,27px); line-height:1.3; font-weight:600"></div>
+          <div contenteditable="true" data-key="standard" data-ph="Standard code" style="font-size:18px; letter-spacing:1.5px; text-transform:uppercase; color:var(--color-neutral-600)"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(18px,2.4vh,25px); line-height:1.35; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(16px,2vh,21px); line-height:1.3; flex:1"></span></div>
+        </div>
+        <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(16px,2vh,21px); flex:1"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section data-board="D" style="display:{{ showD }}; grid-column:1 / span 2; grid-row:1; min-height:0">
+      <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(19px,2.6vh,27px); line-height:1.3; font-weight:600"></div>
+          <div contenteditable="true" data-key="standard" data-ph="Standard code" style="font-size:18px; letter-spacing:1.5px; text-transform:uppercase; color:var(--color-neutral-600)"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(18px,2.4vh,25px); line-height:1.35; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(16px,2vh,21px); line-height:1.3; flex:1"></span></div>
+        </div>
+        <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(16px,2vh,21px); flex:1"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section data-board="G" style="display:{{ showG }}; grid-column:1 / span 2; grid-row:1; min-height:0">
+      <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(19px,2.6vh,27px); line-height:1.3; font-weight:600"></div>
+          <div contenteditable="true" data-key="standard" data-ph="Standard code" style="font-size:18px; letter-spacing:1.5px; text-transform:uppercase; color:var(--color-neutral-600)"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(18px,2.4vh,25px); line-height:1.35; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(16px,2vh,21px); line-height:1.3; flex:1"></span></div>
+        </div>
+        <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(16px,2vh,21px); flex:1"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section data-board="E" style="display:{{ showE }}; grid-column:1 / span 2; grid-row:1; min-height:0">
+      <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(19px,2.6vh,27px); line-height:1.3; font-weight:600"></div>
+          <div contenteditable="true" data-key="standard" data-ph="Standard code" style="font-size:18px; letter-spacing:1.5px; text-transform:uppercase; color:var(--color-neutral-600)"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(18px,2.4vh,25px); line-height:1.35; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(16px,2vh,21px); line-height:1.3; flex:1"></span></div>
+        </div>
+        <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+        </div>
+        <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(20px,2.9vh,30px); line-height:1.35; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(16px,2vh,21px); flex:1"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <aside style="grid-column:3; grid-row:1; border-left:2px solid var(--color-divider); display:flex; flex-direction:column; min-height:0; overflow-y:auto; container-type:inline-size">
+      <div data-rail="1" style="padding:clamp(10px,1.6vh,16px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:3px; flex:none">
+        <div style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Word of the Day</div>
+        <div contenteditable="true" data-key="wod" data-daily="1" data-ph="Word" style="font-family:var(--font-heading); font-size:clamp(24px,3.6vh,40px); font-weight:700; line-height:1.05; letter-spacing:-1px"></div>
+        <div contenteditable="true" data-key="wodDef" data-daily="1" data-ph="Definition" style="font-size:clamp(15px,1.9vh,20px); line-height:1.3"></div>
+        <div contenteditable="true" data-key="wodSent" data-daily="1" data-ph="Sentence" style="font-size:clamp(14px,1.8vh,18px); line-height:1.3; font-style:italic; color:var(--color-neutral-700)"></div>
+        <button onClick="{{ nextWord }}" class="btn btn-ghost" style="font-size:clamp(12px,1.5vh,14px); padding:3px 7px; align-self:flex-start; margin-top:3px; cursor:pointer">New word</button>
+      </div>
+
+      <div data-rail="1" style="padding:clamp(10px,1.6vh,16px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:3px; flex:none">
+        <div style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Literary Term</div>
+        <div contenteditable="true" data-key="litTerm" data-daily="1" data-ph="Term" style="font-family:var(--font-heading); font-size:clamp(21px,3vh,32px); font-weight:700; line-height:1.05; letter-spacing:-0.5px"></div>
+        <div contenteditable="true" data-key="litDef" data-daily="1" data-ph="Definition" style="font-size:clamp(14px,1.8vh,19px); line-height:1.3"></div>
+      </div>
+
+      <div data-rail="1" style="padding:clamp(10px,1.6vh,16px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:4px; flex:none">
+        <div style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Countdown</div>
+        <div style="display:flex; align-items:baseline; gap:12px">
+          <span style="font-family:var(--font-heading); font-size:min(clamp(24px,4vh,46px),14cqw); font-weight:700; line-height:1; letter-spacing:-1.5px; font-variant-numeric:tabular-nums; color:{{ cdColor }}">{{ cdDays }}</span>
+          <span style="font-size:clamp(13px,1.7vh,17px); text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ cdUnit }}</span>
+        </div>
+        <div contenteditable="true" data-key="cdLabel" data-ph="What's coming up…" style="font-size:clamp(14px,1.8vh,18px); line-height:1.25; font-weight:600"></div>
+        <div style="display:flex; align-items:baseline; gap:8px">
+          <span style="font-size:clamp(12px,1.5vh,14px); text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Date</span>
+          <span contenteditable="true" data-key="cdDate" data-ph="9/11" style="font-size:clamp(14px,1.8vh,18px); font-variant-numeric:tabular-nums"></span>
+        </div>
+      </div>
+
+      <div data-rail="1" style="padding:clamp(12px,2vh,20px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:10px; flex:none">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px">
+          <span style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Voice Level</span>
+          <span style="font-family:var(--font-heading); font-size:clamp(18px,2.8vh,30px); font-weight:700; color:{{ noiseColor }}">{{ noiseLabel }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px">
+          <div style="height:clamp(20px,3.4vh,38px); flex:1; background:var(--color-neutral-200); position:relative; overflow:hidden">
+            <div style="position:absolute; inset:0 auto 0 0; width:{{ noiseWidth }}; background:{{ noiseColor }}; transition:width 120ms linear"></div>
+          </div>
+          <button onClick="{{ toggleMic }}" class="btn btn-ghost" style="font-size:clamp(13px,1.7vh,16px); padding:6px 12px; cursor:pointer; flex:none">{{ micShort }}</button>
+        </div>
+      </div>
+
+      <div data-rail="1" style="padding:clamp(8px,1.3vh,14px) 22px; display:flex; flex-direction:column; gap:6px; flex:none">
+        <div style="display:flex; align-items:center; gap:12px">
+          <span style="font-family:var(--font-heading); font-size:clamp(28px,4.4vh,46px); font-weight:700; line-height:1; letter-spacing:-1.5px; font-variant-numeric:tabular-nums; color:{{ timerColor }}">{{ timerStr }}</span>
+          <button onClick="{{ toggleTimer }}" class="btn btn-primary" style="flex:1; font-size:clamp(14px,1.8vh,17px); padding:6px 12px; cursor:pointer; color:{{ accentFg }}">{{ runLabel }}</button>
+          <button onClick="{{ resetTimer }}" class="btn btn-ghost" style="font-size:clamp(14px,1.8vh,17px); padding:6px 10px; cursor:pointer; flex:none">Reset</button>
+        </div>
+        <div style="display:flex; gap:6px">
+          <button onClick="{{ set1 }}" class="btn btn-secondary" style="flex:1; font-size:clamp(13px,1.7vh,16px); padding:4px 0; justify-content:center; cursor:pointer">1</button>
+          <button onClick="{{ set3 }}" class="btn btn-secondary" style="flex:1; font-size:clamp(13px,1.7vh,16px); padding:4px 0; justify-content:center; cursor:pointer">3</button>
+          <button onClick="{{ set5 }}" class="btn btn-secondary" style="flex:1; font-size:clamp(13px,1.7vh,16px); padding:4px 0; justify-content:center; cursor:pointer">5</button>
+          <button onClick="{{ set10 }}" class="btn btn-secondary" style="flex:1; font-size:clamp(13px,1.7vh,16px); padding:4px 0; justify-content:center; cursor:pointer">10</button>
+          <button onClick="{{ set15 }}" class="btn btn-secondary" style="flex:1; font-size:clamp(13px,1.7vh,16px); padding:4px 0; justify-content:center; cursor:pointer">15</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:900},&quot;colorA&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ec3013&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ec3013&quot;,&quot;#ff5a1f&quot;,&quot;#ffc61a&quot;,&quot;#22c55e&quot;,&quot;#2563eb&quot;,&quot;#1c4f9c&quot;,&quot;#1f6b47&quot;,&quot;#6b2d5b&quot;],&quot;section&quot;:&quot;Class colors&quot;},&quot;colorD&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2563eb&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ec3013&quot;,&quot;#ff5a1f&quot;,&quot;#ffc61a&quot;,&quot;#22c55e&quot;,&quot;#2563eb&quot;,&quot;#1c4f9c&quot;,&quot;#1f6b47&quot;,&quot;#6b2d5b&quot;],&quot;section&quot;:&quot;Class colors&quot;},&quot;colorG&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#22c55e&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ec3013&quot;,&quot;#ff5a1f&quot;,&quot;#ffc61a&quot;,&quot;#22c55e&quot;,&quot;#2563eb&quot;,&quot;#1c4f9c&quot;,&quot;#1f6b47&quot;,&quot;#6b2d5b&quot;],&quot;section&quot;:&quot;Class colors&quot;},&quot;colorE&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ffc61a&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ec3013&quot;,&quot;#ff5a1f&quot;,&quot;#ffc61a&quot;,&quot;#22c55e&quot;,&quot;#2563eb&quot;,&quot;#1c4f9c&quot;,&quot;#1f6b47&quot;,&quot;#6b2d5b&quot;],&quot;section&quot;:&quot;Class colors&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Dark&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Board&quot;},&quot;backdrop&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Visible&quot;,&quot;options&quot;:[&quot;None&quot;,&quot;Subtle&quot;,&quot;Visible&quot;,&quot;Bold&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Board&quot;}}">
+const ROT_SLOTS = ['8:40 – 9:35', '9:40 – 10:35', '11:15 – 12:10', '1:20 – 2:15', '2:20 – 3:15'];
+const ROT_DAYS = {
+  '1': ['A','B','C','D','E'], '2': ['F','G','A','B','C'], '3': ['D','E','F','G','A'],
+  '4': ['B','C','D','E','F'], '5': ['G','A','B','C','D'], '6': ['E','F','G','A','B'], '7': ['C','D','E','F','G']
+};
+const FIXED = {
+  X: { A:'8:40 – 9:25', B:'9:30 – 10:15', C:'10:20 – 11:05', D:'11:10 – 11:55', E:'12:50 – 1:35', F:'1:40 – 2:25', G:'2:30 – 3:15' },
+  A: { A:'8:40 – 9:50', B:'9:55 – 11:05', C:'12:50 – 2:00', D:'2:05 – 3:15' },
+  B: { E:'10:30 – 11:40', F:'12:50 – 2:00', G:'2:05 – 3:15' },
+  Bn: { E:'8:40 – 9:50', F:'9:55 – 11:05', G:'11:10 – 12:20' }
+};
+const TYPE_LABEL = { '1':'Day 1','2':'Day 2','3':'Day 3','4':'Day 4','5':'Day 5','6':'Day 6','7':'Day 7', X:'X Day', A:'A Block', B:'B Block — late start', Bn:'B Block — no late start' };
+const CAL = {
+  '2026-08-13':'X','2026-08-14':'1','2026-08-17':'2','2026-08-18':'3','2026-08-19':'4','2026-08-20':'5','2026-08-21':'6',
+  '2026-08-24':'7','2026-08-25':'A','2026-08-26':'B','2026-08-27':'1','2026-08-28':'2',
+  '2026-08-31':'3','2026-09-01':'4','2026-09-02':'5','2026-09-03':'6','2026-09-04':'7',
+  '2026-09-07':'Labor Day','2026-09-08':'X','2026-09-09':'1','2026-09-10':'2','2026-09-11':'3',
+  '2026-09-14':'4','2026-09-15':'5','2026-09-16':'6','2026-09-17':'7','2026-09-18':'X',
+  '2026-09-21':'Yom Kippur','2026-09-22':'A','2026-09-23':'B','2026-09-24':'X','2026-09-25':'1',
+  '2026-09-28':'2','2026-09-29':'3','2026-09-30':'4','2026-10-01':'5','2026-10-02':'6',
+  '2026-10-05':'7','2026-10-06':'A','2026-10-07':'B','2026-10-08':'X','2026-10-09':'Teacher Work Day',
+  '2026-10-12':'1','2026-10-13':'2','2026-10-14':'3','2026-10-15':'4','2026-10-16':'5',
+  '2026-10-19':'6','2026-10-20':'7','2026-10-21':'1','2026-10-22':'2','2026-10-23':'3',
+  '2026-10-26':'4','2026-10-27':'5','2026-10-28':'6','2026-10-29':'7','2026-10-30':'1',
+  '2026-11-02':'2','2026-11-03':'3','2026-11-04':'4','2026-11-05':'5','2026-11-06':'6',
+  '2026-11-09':'7','2026-11-10':'B','2026-11-11':'A','2026-11-12':'1','2026-11-13':'2',
+  '2026-11-16':'3','2026-11-17':'4','2026-11-18':'5','2026-11-19':'6','2026-11-20':'7',
+  '2026-11-23':'Thanksgiving Week','2026-11-24':'Thanksgiving Week','2026-11-25':'Thanksgiving Week','2026-11-26':'Thanksgiving Week','2026-11-27':'Thanksgiving Week',
+  '2026-11-30':'1','2026-12-01':'2','2026-12-02':'3','2026-12-03':'4','2026-12-04':'5',
+  '2026-12-07':'6','2026-12-08':'7','2026-12-09':'A','2026-12-10':'Bn','2026-12-11':'English Exam — 11:45 dismissal',
+  '2026-12-14':'Science Exam — 11:45 dismissal','2026-12-15':'SS Exam — 11:45 dismissal','2026-12-16':'Math Exam — 11:45 dismissal',
+  '2026-12-17':'WL / Lit Exam — 11:45 dismissal','2026-12-18':'Exam Make-Up / Teacher Work Day'
+};
+const MY = ['A','D','G','E'];
+const LABELS = { A:'A · 8 Honors Lit', D:'D · 8 Honors Lit', G:'G · 8 Honors Lit', E:'E · 8 ECP Lit' };
+
+class Component extends DCLogic {
+  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0 };
+
+  componentDidMount() {
+    this.tick = setInterval(() => {
+      this.setState(s => {
+        const n = { now: new Date() };
+        if (s.running && s.secs > 0) {
+          n.secs = s.secs - 1;
+          if (n.secs === 0) { n.running = false; n.done = true; this.beep(); setTimeout(() => this.setState({ done: false }), 6000); }
+        }
+        return n;
+      });
+    }, 1000);
+    this.restore();
+    this.applyWord(false);
+    this.loadDeck();
+    this._dayKey = this.dateKey();
+    this.dayWatch = setInterval(() => {
+      const k = this.dateKey();
+      if (k !== this._dayKey) { this._dayKey = k; this.refreshDaily(); }
+    }, 20000);
+    document.addEventListener('input', this.onEdit = e => {
+      const el = e.target.closest && e.target.closest('[data-key]');
+      if (!el) return;
+      try { localStorage.setItem(this.keyFor(el), el.innerText); } catch (err) {}
+    });
+    document.addEventListener('keydown', this.onKey = e => {
+      if (e.target.isContentEditable || e.target.tagName === 'SELECT') return;
+      if (e.code === 'Space') { e.preventDefault(); this.setState(s => ({ running: !s.running, done: false })); }
+    });
+  }
+  componentWillUnmount() {
+    clearInterval(this.tick);
+    clearInterval(this.dayWatch);
+    document.removeEventListener('input', this.onEdit);
+    document.removeEventListener('keydown', this.onKey);
+    if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+  }
+
+  keyFor(el) {
+    const sec = el.closest('[data-board]');
+    const scope = sec ? sec.getAttribute('data-board') : 'shared';
+    const daily = el.getAttribute('data-daily') ? '.' + this.dateKey() : '';
+    return 'cb.' + scope + '.' + el.getAttribute('data-key') + daily;
+  }
+  viewDate() {
+    const n = this.state && this.state.now ? this.state.now : new Date();
+    const shift = (this.state && this.state.dayShift) || 0;
+    if (!shift) return n;
+    const d = new Date(n.getTime());
+    d.setDate(d.getDate() + shift);
+    return d;
+  }
+  refreshDaily = () => { this.wordOffset = 0; this.restore(); this.applyWord(false); this.applyDeck(false); };
+  shiftDay = n => this.setState(s => ({ dayShift: (s.dayShift || 0) + n, dayValue: 'auto', manual: null }), this.refreshDaily);
+  goToday = () => this.setState({ dayShift: 0, dayValue: 'auto', manual: null }, this.refreshDaily);
+  dateKey() {
+    const d = this.viewDate();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  wordFor(offset) {
+    const list = window.SAT_WORDS || [];
+    if (!list.length) return null;
+    const d = this.viewDate();
+    const doy = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    return list[(doy * 7 + (offset || 0)) % list.length];
+  }
+  termFor(offset) {
+    const list = window.LIT_TERMS || [];
+    if (!list.length) return null;
+    const d = this.viewDate();
+    const doy = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    return list[(doy * 3 + (offset || 0)) % list.length];
+  }
+  applyWord(force) {
+    const w = this.wordFor(this.wordOffset || 0);
+    const t = this.termFor(this.wordOffset || 0);
+    if (!w) return;
+    const map = { wod: w[0], wodDef: w[1], wodSent: w[2] };
+    if (t) { map.litTerm = t[0]; map.litDef = t[1]; }
+    Object.keys(map).forEach(k => {
+      const el = document.querySelector('[data-key="' + k + '"]');
+      if (!el) return;
+      let saved = null;
+      try { saved = localStorage.getItem(this.keyFor(el)); } catch (e) {}
+      if (force || !saved) {
+        el.innerText = map[k];
+        if (force) { try { localStorage.removeItem(this.keyFor(el)); } catch (e) {} }
+      }
+    });
+  }
+  nextWord = () => { this.wordOffset = (this.wordOffset || 0) + 1; this.applyWord(true); };
+
+  /* ── Deck data ────────────────────────────────────────────────────────────
+     data/schedule.json is regenerated from the two Google Slides decks every
+     six hours by .github/workflows/refresh.yml. It carries one record per
+     (period, date) plus a derived date -> day-type calendar. */
+  loadDeck() {
+    fetch('data/schedule.json', { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(j => {
+        const idx = {};
+        (j.schedule || []).forEach(r => {
+          if (!idx[r.period]) idx[r.period] = {};
+          idx[r.period][r.date] = r;
+        });
+        this.deck = { meta: j, byPeriodDate: idx };
+        // CAL above is hand-authored and carries holiday and exam labels the
+        // decks cannot express. It wins; the derived calendar only fills gaps
+        // (notably all of second semester, which CAL does not cover).
+        const derived = j.calendar || {};
+        Object.keys(derived).forEach(d => { if (!(d in CAL)) CAL[d] = derived[d]; });
+        this.applyDeck(false);
+        this.setState({ deckState: 'ok' });
+      })
+      .catch(err => {
+        console.warn('[board] schedule.json unavailable:', err);
+        this.setState({ deckState: 'error' });
+      });
+  }
+  deckRecord(board) {
+    if (!this.deck) return null;
+    const byDate = this.deck.byPeriodDate[board];
+    return byDate ? byDate[this.dateKey()] || null : null;
+  }
+  /* Fills the four deck-backed fields. Anything you have typed for this date
+     is left alone unless force is set, matching how applyWord treats the word
+     of the day. */
+  applyDeck(force) {
+    if (!this.deck) return;
+    MY.forEach(board => {
+      const sec = document.querySelector('[data-board="' + board + '"]');
+      if (!sec) return;
+      const rec = this.deckRecord(board);
+      const lines = a => (a && a.length ? a.join('\n') : '');
+      const map = {
+        objective: rec ? (rec.objective || '') : '',
+        lesson: rec ? lines(rec.lesson) : '',
+        study: rec ? lines(rec.study) : '',
+        homework: rec ? lines(rec.homework) : ''
+      };
+      Object.keys(map).forEach(k => {
+        const el = sec.querySelector('[data-key="' + k + '"]');
+        if (!el) return;
+        const storeKey = this.keyFor(el);
+        let saved = null;
+        try { saved = localStorage.getItem(storeKey); } catch (e) {}
+        if (!force && saved !== null && saved !== '') return;   // your edit wins
+        if (!force && !map[k]) return;                          // nothing to fill
+        el.innerText = map[k];
+        try {
+          if (map[k]) localStorage.setItem(storeKey, map[k]);
+          else localStorage.removeItem(storeKey);
+        } catch (e) {}
+      });
+    });
+  }
+  reloadDeck = () => { this.loadDeck(); this.applyDeck(true); };
+  deckStamp() {
+    if (this.state.deckState === 'error') return 'Lesson data unavailable — showing saved text only';
+    if (!this.deck) return 'Loading lesson data…';
+    const n = MY.filter(b => this.deckRecord(b)).length;
+    const at = this.deck.meta.generatedAt;
+    const when = at ? new Date(at).toLocaleString() : 'unknown';
+    return n + ' of ' + MY.length + ' classes have deck content for this date · data refreshed ' + when;
+  }
+  restore() {
+    document.querySelectorAll('[data-key]').forEach(el => {
+      let v = null;
+      try { v = localStorage.getItem(this.keyFor(el)); } catch (e) {}
+      if (v !== null && v !== '') el.innerText = v;
+    });
+  }
+  clearSaved = () => {
+    try {
+      const kill = [];
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cb.') === 0) kill.push(k); }
+      kill.forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
+    location.reload();
+  };
+
+  dayType() {
+    if (this.state.dayValue !== 'auto') return this.state.dayValue;
+    const d = this.viewDate();
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return CAL[key] || null;
+  }
+  isClassDay(t) { return !!(t && (ROT_DAYS[t] || FIXED[t])); }
+  blockTimes(t) {
+    if (!this.isClassDay(t)) return {};
+    if (FIXED[t]) return FIXED[t];
+    const out = {};
+    ROT_DAYS[t].forEach((b, i) => { out[b] = ROT_SLOTS[i]; });
+    return out;
+  }
+  mins(txt) {
+    const m = /(\d{1,2}):(\d{2})/.exec(txt || '');
+    if (!m) return null;
+    let h = +m[1];
+    if (h < 8) h += 12;
+    return h * 60 + (+m[2]);
+  }
+  range(str) {
+    if (!str) return null;
+    const parts = str.split('–');
+    return { a: this.mins(parts[0]), b: this.mins(parts[1]) };
+  }
+
+  beep() {
+    try {
+      const C = window.AudioContext || window.webkitAudioContext;
+      const ctx = new C();
+      [0, 0.45, 0.9].forEach(t => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = 880; o.type = 'sine';
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + t + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.32);
+        o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.35);
+      });
+    } catch (e) {}
+  }
+
+  toggleMic = () => {
+    if (this.state.mic) {
+      if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+      this.stream = null; cancelAnimationFrame(this.raf);
+      this.setState({ mic: false, level: 0 });
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      this.stream = stream;
+      const C = window.AudioContext || window.webkitAudioContext;
+      const ctx = new C(), src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser();
+      an.fftSize = 512; src.connect(an);
+      const buf = new Uint8Array(an.fftSize);
+      let smooth = 0;
+      const loop = () => {
+        an.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+        smooth = smooth * 0.8 + Math.min(1, Math.sqrt(sum / buf.length) * 6) * 0.2;
+        this.setState({ level: smooth });
+        this.raf = requestAnimationFrame(loop);
+      };
+      this.setState({ mic: true });
+      loop();
+    }).catch(err => { console.warn('Microphone unavailable:', err && err.message ? err.message : err); });
+  };
+
+  activeBoard() {
+    if (this.state.manual) return this.state.manual;
+    const t = this.dayType();
+    const times = this.blockTimes(t);
+    const n = this.state.now, cur = n.getHours() * 60 + n.getMinutes();
+    const mine = MY.filter(b => times[b]).map(b => ({ b: b, r: this.range(times[b]) })).sort((x, y) => x.r.a - y.r.a);
+    if (!mine.length) return 'A';
+    for (const m of mine) if (cur < m.r.b) return m.b;
+    return mine[mine.length - 1].b;
+  }
+  statusText() {
+    const t = this.dayType();
+    if (!t) return 'No school scheduled';
+    if (!this.isClassDay(t)) return t;
+    const times = this.blockTimes(t);
+    const act = this.activeBoard();
+    const r = this.range(times[act]);
+    if (!r) return act + ' block does not meet';
+    const n = this.state.now, cur = n.getHours() * 60 + n.getMinutes();
+    if (cur < r.a) return act + ' block starts in ' + (r.a - cur) + ' min';
+    if (cur >= r.b) return act + ' block has ended';
+    return (r.b - cur) + ' min left in ' + act + ' block';
+  }
+
+  countdown() {
+    const el = document.querySelector('[data-key="cdDate"]');
+    const txt = el ? el.innerText.trim() : '';
+    const m = /(\d{1,2})\s*[\/\-.]\s*(\d{1,2})(?:\s*[\/\-.]\s*(\d{2,4}))?/.exec(txt);
+    if (!m) return { n: '—', unit: 'set a date', color: 'var(--color-neutral-500)' };
+    const now = this.viewDate();
+    let yr = m[3] ? +m[3] : now.getFullYear();
+    if (yr < 100) yr += 2000;
+    const target = new Date(yr, +m[1] - 1, +m[2]);
+    if (!m[3] && target < new Date(now.getFullYear(), now.getMonth(), now.getDate())) target.setFullYear(yr + 1);
+    const days = Math.round((target - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+    if (days === 0) return { n: 'Today', unit: '', color: 'var(--color-accent)' };
+    if (days === 1) return { n: '1', unit: 'day away', color: 'var(--color-accent)' };
+    if (days < 0) return { n: Math.abs(days), unit: 'days ago', color: 'var(--color-neutral-500)' };
+    return { n: days, unit: 'days away', color: days <= 3 ? 'var(--color-accent)' : 'var(--color-text)' };
+  }
+  fmtClock(d) {
+    let h = d.getHours() % 12; if (h === 0) h = 12;
+    return h + ':' + String(d.getMinutes()).padStart(2, '0') + ' ' + (d.getHours() < 12 ? 'AM' : 'PM');
+  }
+
+  renderVals() {
+    const s = this.state, d = s.now, vd = this.viewDate();
+    const CLASS_COLORS = {
+      A: this.props.colorA || '#ec3013',
+      D: this.props.colorD || '#2563eb',
+      G: this.props.colorG || '#22c55e',
+      E: this.props.colorE || '#ffc61a'
+    };
+    const accent = CLASS_COLORS[this.activeBoard()] || '#ec3013';
+    const dark = (this.props.theme || 'Light') === 'Dark';
+    const mix = (c, w, p) => 'color-mix(in oklch, ' + c + ', ' + w + ' ' + p + '%)';
+    const lum = hex => {
+      const h = (hex || '').replace('#', '');
+      if (h.length < 6) return 0.3;
+      const v = [0, 2, 4].map(i => {
+        const c = parseInt(h.substr(i, 2), 16) / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    };
+    const La = lum(accent);
+    const ratio = (l1, l2) => (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    const accentFg = ratio(La, lum('#ffffff')) >= ratio(La, lum('#201e1d')) ? '#ffffff' : '#201e1d';
+    const light = La > 0.25;
+    const backdrop = this.props.backdrop || 'Visible';
+    const gain = { None: 0, Subtle: 0.55, Visible: 1, Bold: 1.7 }[backdrop] || 0;
+    const star = dark ? 'rgba(255,255,255,' : 'rgba(32,30,29,';
+    const dots = [[6,11,2.4,.55],[19,42,1.6,.4],[31,7,1.4,.34],[44,27,3,.5],[57,63,1.6,.36],[69,15,1.4,.4],[81,48,2.6,.46],[93,29,1.4,.34],[12,71,1.6,.34],[26,88,2.6,.44],[38,58,1.4,.32],[52,94,1.6,.36],[64,79,2.4,.42],[77,66,1.6,.34],[88,91,1.4,.32],[3,54,1.6,.34],[47,4,1.4,.3],[72,36,1.6,.34],[15,22,3.4,.6],[59,37,1.2,.28],[84,73,3.2,.52],[35,45,1.2,.26]];
+    const field = dots.map(p => {
+      const r = (p[2] * (gain > 1 ? 1.25 : 1)).toFixed(1);
+      const o = Math.min(0.95, p[3] * gain).toFixed(2);
+      return 'radial-gradient(' + r + 'px ' + r + 'px at ' + p[0] + '% ' + p[1] + '%, ' + star + o + ') 60%, transparent 100%)';
+    }).join(', ');
+    const theme = {
+      bdImage: gain ? field : 'none',
+      bdSize: gain ? (gain > 1 ? '300px 300px' : '400px 400px') : 'auto',
+      cAccent: accent,
+      cAccent200: mix(accent, 'white', dark ? 60 : 78),
+      cAccent400: mix(accent, 'white', 34),
+      cAccent600: mix(accent, 'black', 14),
+      cAccent700: dark ? mix(accent, 'white', light ? 6 : (La < 0.1 ? 46 : 30)) : mix(accent, 'black', light ? 52 : 26),
+      accentFg: accentFg,
+      cBg: dark ? '#1b1a19' : '#f3f2f2',
+      cInk: dark ? '#f4f2f0' : '#201e1d',
+      cDivider: dark ? '#4a4644' : '#201e1d',
+      cN100: dark ? '#262423' : '#e8e6e5',
+      cN200: dark ? '#312e2c' : '#dcd9d7',
+      cN500: dark ? '#8a8482' : '#8a8482',
+      cN600: dark ? '#a9a4a1' : '#6d6866',
+      cN700: dark ? '#c6c1be' : '#4d4846'
+    };
+    const t = this.dayType();
+    const times = this.blockTimes(t);
+    const act = this.activeBoard();
+    const set = n => () => this.setState({ secs: n * 60, base: n * 60, running: true, done: false });
+    const tap = b => () => this.setState({ manual: b });
+    const lvl = s.level;
+    const vals = {
+      dateStr: vd.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }),
+      dayStr: vd.toLocaleDateString(undefined, { weekday: 'long' }),
+      prevDay: () => this.shiftDay(-1),
+      nextDay: () => this.shiftDay(1),
+      goToday: this.goToday,
+      todayBtn: s.dayShift ? 'inline-flex' : 'none',
+      dateInk: s.dayShift ? 'var(--color-accent-700)' : 'var(--color-text)',
+      dayTypeLabel: t ? (TYPE_LABEL[t] || t) : 'no school',
+      dayValue: s.dayValue,
+      onDayChange: e => this.setState({ dayValue: e.target.value, manual: null }, this.refreshDaily),
+      timeStr: this.fmtClock(d),
+      periodStatus: this.statusText(),
+      autoBtn: s.manual ? 'block' : 'none',
+      followAuto: () => this.setState({ manual: null }),
+      boardLabel: LABELS[act],
+      timerStr: Math.floor(s.secs / 60) + ':' + String(s.secs % 60).padStart(2, '0'),
+      timerColor: s.done || (s.secs <= 30 && s.running) ? 'var(--color-accent)' : 'var(--color-text)',
+      flashAnim: s.done ? 'cbflash 0.7s steps(1,end) 8' : 'none',
+      runLabel: s.running ? 'Pause' : 'Start',
+      toggleTimer: () => this.setState(st => ({ running: !st.running, done: false })),
+      resetTimer: () => this.setState(st => ({ secs: st.base, running: false, done: false })),
+      set1: set(1), set3: set(3), set5: set(5), set10: set(10), set15: set(15),
+      micLabel: s.mic ? 'Stop listening' : 'Turn on microphone',
+      micShort: s.mic ? 'Mic off' : 'Mic on',
+      noiseLabel: !s.mic ? 'Off' : (lvl < 0.25 ? 'Silent' : lvl < 0.5 ? 'Whisper' : lvl < 0.75 ? 'Table talk' : 'Too loud'),
+      noiseWidth: Math.round(lvl * 100) + '%',
+      noiseColor: lvl < 0.5 ? 'var(--color-neutral-700)' : lvl < 0.75 ? 'var(--color-accent-400)' : 'var(--color-accent)',
+      toggleMic: this.toggleMic,
+      cdDays: this.countdown().n,
+      cdUnit: this.countdown().unit,
+      cdColor: this.countdown().color,
+      clearSaved: this.clearSaved,
+      ...theme,
+      nextWord: this.nextWord,
+      reloadDeck: this.reloadDeck,
+      deckStamp: this.deckStamp()
+    };
+    MY.forEach(b => {
+      vals['show' + b] = act === b ? 'block' : 'none';
+      vals['bar' + b] = act === b ? CLASS_COLORS[b] : 'color-mix(in oklch, ' + CLASS_COLORS[b] + ', ' + (dark ? '#1b1a19' : '#f3f2f2') + ' 62%)';
+      vals['tabBg' + b] = act === b ? (dark ? 'color-mix(in oklch, ' + CLASS_COLORS[b] + ', #1b1a19 74%)' : '#ffffff') : 'transparent';
+      vals['tabFg' + b] = act === b ? (dark ? '#ffffff' : 'var(--color-text)') : (dark ? 'var(--color-neutral-600)' : 'var(--color-text)');
+      vals['time' + b] = times[b] || 'Does not meet';
+      vals['tap' + b] = tap(b);
+    });
+    const ordered = MY.slice().sort((x, y) => {
+      const rx = this.range(times[x]), ry = this.range(times[y]);
+      if (rx && ry) return rx.a - ry.a;
+      if (rx) return -1;
+      if (ry) return 1;
+      return MY.indexOf(x) - MY.indexOf(y);
+    });
+    ordered.forEach((b, i) => { vals['order' + b] = i; });
+    return vals;
+  }
+}
+</script>
+</body>
+</html>
