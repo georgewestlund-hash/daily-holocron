@@ -106,6 +106,7 @@
       <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap">
         <button onClick="{{ followAuto }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ autoBtn }}">Follow schedule</button>
         <button onClick="{{ goToday }}" class="btn btn-secondary" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ todayBtn }}">Back to today</button>
+        <button onClick="{{ toggleFull }}" class="btn btn-secondary" style="font-size:13px; padding:3px 7px; cursor:pointer" title="Full screen (F)">{{ fullLabel }}</button>
         <button onClick="{{ reloadDeck }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer" title="{{ deckStamp }}">Reload lesson</button>
         <button onClick="{{ clearSaved }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer">Clear board</button>
       </div>
@@ -312,7 +313,7 @@ const MY = ['A','D','G','E'];
 const LABELS = { A:'A · 8 Honors Lit', D:'D · 8 Honors Lit', G:'G · 8 Honors Lit', E:'E · 8 ECP Lit' };
 
 class Component extends DCLogic {
-  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0 };
+  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0, full: false };
 
   componentDidMount() {
     this.tick = setInterval(() => {
@@ -341,6 +342,13 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this.onKey = e => {
       if (e.target.isContentEditable || e.target.tagName === 'SELECT') return;
       if (e.code === 'Space') { e.preventDefault(); this.setState(s => ({ running: !s.running, done: false })); }
+      if (e.key === 'f' || e.key === 'F') { e.preventDefault(); this.toggleFull(); }
+      if (e.key === 'Escape' && document.fullscreenElement) this.toggleFull();
+    });
+    // The browser also leaves fullscreen on its own (Esc, F11), so track the
+    // real state rather than assuming our button is the only way out.
+    document.addEventListener('fullscreenchange', this.onFull = () => {
+      this.setState({ full: !!document.fullscreenElement });
     });
   }
   componentWillUnmount() {
@@ -348,6 +356,7 @@ class Component extends DCLogic {
     clearInterval(this.dayWatch);
     document.removeEventListener('input', this.onEdit);
     document.removeEventListener('keydown', this.onKey);
+    document.removeEventListener('fullscreenchange', this.onFull);
     if (this.stream) this.stream.getTracks().forEach(t => t.stop());
   }
 
@@ -470,6 +479,24 @@ class Component extends DCLogic {
     });
   }
   reloadDeck = () => { this.loadDeck(); this.applyDeck(true); };
+
+  /* Fullscreen has to originate from a user gesture, so this is only ever
+     called from the button or a keypress. Vendor-prefixed fallback is for
+     older Safari, which never returns a promise. */
+  toggleFull = () => {
+    const el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) { console.warn('[board] fullscreen not supported'); return; }
+        const p = req.call(el, { navigationUI: 'hide' });
+        if (p && p.catch) p.catch(err => console.warn('[board] fullscreen refused:', err));
+      } else {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit) exit.call(document);
+      }
+    } catch (e) { console.warn('[board] fullscreen error:', e); }
+  };
   deckStamp() {
     if (this.state.deckState === 'error') return 'Lesson data unavailable — showing saved text only';
     if (!this.deck) return 'Loading lesson data…';
@@ -701,7 +728,9 @@ class Component extends DCLogic {
       ...theme,
       nextWord: this.nextWord,
       reloadDeck: this.reloadDeck,
-      deckStamp: this.deckStamp()
+      deckStamp: this.deckStamp(),
+      toggleFull: this.toggleFull,
+      fullLabel: this.state.full ? 'Exit full screen' : 'Full screen'
     };
     MY.forEach(b => {
       vals['show' + b] = act === b ? 'block' : 'none';
