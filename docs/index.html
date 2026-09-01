@@ -44,12 +44,14 @@
   }
   @keyframes cbflash { 0%,100%{background:var(--color-bg);} 50%{background:var(--color-accent-200);} }
   /* Divider lines read as light rather than ink: a bright core in the active
-     class's colour with a tight bloom on the lit edge only. The negative
-     spread keeps the glow on the edge that has the border instead of haloing
-     the whole cell. */
+     class's colour with a bloom on the lit edge only. The negative spread
+     keeps the glow on the edge that has the border instead of haloing the
+     whole cell.
+
      Two layers per edge: a tight hot bloom right against the line, and a wider
      soft halo behind it. One layer alone either reads as a fringe or as haze;
-     the pair is what looks like a beam on a projector. */
+     the pair is what looks like a beam on a projector.
+
      Blur radii and the glow colour's alpha both come from the Glow control, so
      Off leaves clean unlit rules and High throws a wide bloom. */
   [data-lz="r"]  { box-shadow: 2px 0 var(--lz-b1) -1px var(--color-laser-glow), 5px 0 var(--lz-b2) -4px var(--color-laser-glow); }
