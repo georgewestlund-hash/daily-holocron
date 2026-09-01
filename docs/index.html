@@ -23,20 +23,20 @@
   [contenteditable]:empty:before { content:attr(data-ph); color:var(--color-neutral-500); }
   @media (max-height: 800px) {
     [data-key="wodSent"] { display:none; }
-    [data-key="wodDef"] { font-size:15px; line-height:1.2; }
-    [data-key="litDef"] { font-size:14px; line-height:1.2; }
+    [data-key="wodDef"] { font-size:18px; line-height:1.2; }
+    [data-key="litDef"] { font-size:17px; line-height:1.2; }
   }
   /* Short screens only. The clamp() minimums above are sized for a projector,
      so these floors are raised to match rather than dropping back to the
      original values, which were too small to read from the back of a room. */
   @media (max-height: 760px) {
-    [data-key="objective"] { font-size:24px !important; }
-    [data-key="materials"] { font-size:19px !important; }
-    [data-key="first5"], [data-key="study"], [data-key="homework"] { font-size:24px !important; }
-    [data-key="lesson"] { font-size:22px !important; }
+    [data-key="objective"] { font-size:27px !important; }
+    [data-key="materials"], [data-key="due"] { font-size:22px !important; }
+    [data-key="first5"], [data-key="study"], [data-key="homework"] { font-size:28px !important; }
+    [data-key="lesson"] { font-size:26px !important; }
     [data-rail] { padding-top:9px !important; padding-bottom:9px !important; }
-    [data-key="wod"] { font-size:26px !important; }
-    [data-key="litTerm"] { font-size:21px !important; }
+    [data-key="wod"] { font-size:30px !important; }
+    [data-key="litTerm"] { font-size:25px !important; }
     [data-key="cdLabel"] { font-size:14px !important; }
   }
   @media (max-height: 640px) {
@@ -52,12 +52,12 @@
       <div style="display:flex; flex-direction:column; justify-content:center; gap:6px; min-width:0">
       <div style="display:flex; align-items:center; gap:10px; min-width:0">
         <button onClick="{{ prevDay }}" class="btn btn-ghost" style="font-size:20px; line-height:1; padding:2px 9px; cursor:pointer; flex:none" title="Previous day">‹</button>
-        <div style="font-family:var(--font-heading); font-size:clamp(20px,3.2vh,34px); font-weight:700; letter-spacing:-0.5px; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ dateInk }}">{{ dateStr }}</div>
+        <div style="font-family:var(--font-heading); font-size:clamp(24px,3.8vh,40px); font-weight:700; letter-spacing:-0.5px; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ dateInk }}">{{ dateStr }}</div>
         <button onClick="{{ nextDay }}" class="btn btn-ghost" style="font-size:20px; line-height:1; padding:2px 9px; cursor:pointer; flex:none" title="Next day">›</button>
       </div>
       <div style="display:flex; align-items:center; gap:10px">
-        <span style="font-size:17px; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ dayStr }}</span>
-        <select onChange="{{ onDayChange }}" value="{{ dayValue }}" style="font-family:var(--font-body); font-size:16px; border:2px solid var(--color-divider); background:var(--color-bg); padding:4px 6px; color:inherit">
+        <span style="font-size:20px; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ dayStr }}</span>
+        <select onChange="{{ onDayChange }}" value="{{ dayValue }}" style="font-family:var(--font-body); font-size:18px; border:2px solid var(--color-divider); background:var(--color-bg); padding:4px 6px; color:inherit">
           <option value="auto">Today: {{ dayTypeLabel }}</option>
           <option value="1">Day 1</option>
           <option value="2">Day 2</option>
@@ -77,30 +77,30 @@
 
     <div style="display:flex; border-left:2px solid var(--color-divider); flex:1 1 620px; min-width:0; order:3">
       <button onClick="{{ tapA }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgA }}; order:{{ orderA }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
-        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgA }}">A · 8 Honors</span>
-        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeA }}</span>
+        <span style="font-family:var(--font-heading); font-size:clamp(20px,2.7vh,31px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgA }}">A · 8 Honors</span>
+        <span style="font-size:clamp(14px,2vh,20px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeA }}</span>
         <span style="height:8px; width:100%; display:block; background:{{ barA }}; margin-top:auto"></span>
       </button>
       <button onClick="{{ tapD }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgD }}; order:{{ orderD }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
-        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgD }}">D · 8 Honors</span>
-        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeD }}</span>
+        <span style="font-family:var(--font-heading); font-size:clamp(20px,2.7vh,31px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgD }}">D · 8 Honors</span>
+        <span style="font-size:clamp(14px,2vh,20px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeD }}</span>
         <span style="height:8px; width:100%; display:block; background:{{ barD }}; margin-top:auto"></span>
       </button>
       <button onClick="{{ tapG }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgG }}; order:{{ orderG }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
-        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgG }}">G · 8 Honors</span>
-        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeG }}</span>
+        <span style="font-family:var(--font-heading); font-size:clamp(20px,2.7vh,31px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgG }}">G · 8 Honors</span>
+        <span style="font-size:clamp(14px,2vh,20px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeG }}</span>
         <span style="height:8px; width:100%; display:block; background:{{ barG }}; margin-top:auto"></span>
       </button>
       <button onClick="{{ tapE }}" style="appearance:none; border:0; border-right:2px solid var(--color-divider); background:{{ tabBgE }}; order:{{ orderE }}; text-align:left; padding:12px 14px 0; cursor:pointer; color:inherit; display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; font-family:var(--font-body)" style-hover="background:var(--color-neutral-100)">
-        <span style="font-family:var(--font-heading); font-size:clamp(17px,2.3vh,26px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgE }}">E · 8 ECP</span>
-        <span style="font-size:clamp(12px,1.7vh,17px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeE }}</span>
+        <span style="font-family:var(--font-heading); font-size:clamp(20px,2.7vh,31px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ tabFgE }}">E · 8 ECP</span>
+        <span style="font-size:clamp(14px,2vh,20px); color:var(--color-neutral-600); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ timeE }}</span>
         <span style="height:8px; width:100%; display:block; background:{{ barE }}; margin-top:auto"></span>
       </button>
     </div>
 
     <div style="border-left:2px solid var(--color-divider); padding:14px 18px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; flex:0 1 auto; min-width:0; margin-left:auto">
       <div style="font-family:var(--font-heading); font-size:clamp(28px,4.6vh,50px); font-weight:700; line-height:1; letter-spacing:-1px; font-variant-numeric:tabular-nums">{{ timeStr }}</div>
-      <div style="font-size:clamp(12px,1.7vh,17px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600)">{{ periodStatus }}</div>
+      <div style="font-size:clamp(14px,2vh,20px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600)">{{ periodStatus }}</div>
       <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap">
         <button onClick="{{ followAuto }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ autoBtn }}">Follow schedule</button>
         <button onClick="{{ goToday }}" class="btn btn-secondary" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ todayBtn }}">Back to today</button>
@@ -117,23 +117,23 @@
     <section data-board="A" style="display:{{ showA }}; grid-column:1 / span 2; grid-row:1; min-height:0">
       <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
         <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
         <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(23px,3.3vh,34px); line-height:1.25; font-weight:600"></div>
-          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(22px,3vh,32px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(19px,2.5vh,26px); line-height:1.3; flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(27px,3.9vh,41px); line-height:1.25; font-weight:600"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(26px,3.5vh,38px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(22px,2.9vh,31px); line-height:1.3; flex:1"></span></div>
         </div>
         <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(19px,2.5vh,26px); flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(22px,2.9vh,31px); flex:1"></span></div>
         </div>
         <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
       </div>
     </section>
@@ -141,23 +141,23 @@
     <section data-board="D" style="display:{{ showD }}; grid-column:1 / span 2; grid-row:1; min-height:0">
       <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
         <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
         <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(23px,3.3vh,34px); line-height:1.25; font-weight:600"></div>
-          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(22px,3vh,32px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(19px,2.5vh,26px); line-height:1.3; flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(27px,3.9vh,41px); line-height:1.25; font-weight:600"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(26px,3.5vh,38px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(22px,2.9vh,31px); line-height:1.3; flex:1"></span></div>
         </div>
         <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(19px,2.5vh,26px); flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(22px,2.9vh,31px); flex:1"></span></div>
         </div>
         <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
       </div>
     </section>
@@ -165,23 +165,23 @@
     <section data-board="G" style="display:{{ showG }}; grid-column:1 / span 2; grid-row:1; min-height:0">
       <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
         <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
         <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(23px,3.3vh,34px); line-height:1.25; font-weight:600"></div>
-          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(22px,3vh,32px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(19px,2.5vh,26px); line-height:1.3; flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(27px,3.9vh,41px); line-height:1.25; font-weight:600"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(26px,3.5vh,38px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(22px,2.9vh,31px); line-height:1.3; flex:1"></span></div>
         </div>
         <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(19px,2.5vh,26px); flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(22px,2.9vh,31px); flex:1"></span></div>
         </div>
         <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
       </div>
     </section>
@@ -189,43 +189,43 @@
     <section data-board="E" style="display:{{ showE }}; grid-column:1 / span 2; grid-row:1; min-height:0">
       <div style="height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; min-height:0">
         <div style="border-right:2px solid var(--color-divider); border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">First 5</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="first5" data-ph="Bell work…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
         <div style="border-bottom:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(23px,3.3vh,34px); line-height:1.25; font-weight:600"></div>
-          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(22px,3vh,32px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(19px,2.5vh,26px); line-height:1.3; flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Lesson</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="objective" data-daily="1" data-ph="Objective: students will be able to…" style="font-size:clamp(27px,3.9vh,41px); line-height:1.25; font-weight:600"></div>
+          <div contenteditable="true" data-key="lesson" data-daily="1" data-ph="Agenda…" style="font-size:clamp(26px,3.5vh,38px); line-height:1.3; flex:1 1 auto; min-height:1.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Bring</span><span contenteditable="true" data-key="materials" data-ph="Materials…" style="font-size:clamp(22px,2.9vh,31px); line-height:1.3; flex:1"></span></div>
         </div>
         <div style="border-right:2px solid var(--color-divider); padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
-          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(19px,2.5vh,26px); flex:1"></span></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Homework</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="homework" data-daily="1" data-ph="Homework…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; gap:10px; align-items:baseline; border-top:2px solid var(--color-divider); padding-top:8px"><span style="font-size:17px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600); flex:none">Due</span><span contenteditable="true" data-key="due" data-ph="Due…" style="font-size:clamp(22px,2.9vh,31px); flex:1"></span></div>
         </div>
         <div style="padding:20px 26px; display:flex; flex-direction:column; gap:10px; min-height:0">
-          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(24px,3.6vh,38px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
+          <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Study</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
+          <div contenteditable="true" data-key="study" data-daily="1" data-ph="What to study…" style="font-size:clamp(28px,4.2vh,46px); line-height:1.3; flex:1; min-height:2.6em; overflow:auto"></div>
         </div>
       </div>
     </section>
 
     <aside style="grid-column:3; grid-row:1; border-left:2px solid var(--color-divider); display:flex; flex-direction:column; min-height:0; overflow-y:auto; container-type:inline-size">
-      <div data-rail="1" style="padding:clamp(10px,1.6vh,16px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:3px; flex:none">
-        <div style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Word of the Day</div>
-        <div contenteditable="true" data-key="wod" data-daily="1" data-ph="Word" style="font-family:var(--font-heading); font-size:clamp(24px,3.6vh,40px); font-weight:700; line-height:1.05; letter-spacing:-1px"></div>
-        <div contenteditable="true" data-key="wodDef" data-daily="1" data-ph="Definition" style="font-size:clamp(15px,1.9vh,20px); line-height:1.3"></div>
-        <div contenteditable="true" data-key="wodSent" data-daily="1" data-ph="Sentence" style="font-size:clamp(14px,1.8vh,18px); line-height:1.3; font-style:italic; color:var(--color-neutral-700)"></div>
+      <div data-rail="1" style="padding:clamp(7px,1.1vh,11px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:3px; flex:none">
+        <div style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Word of the Day</div>
+        <div contenteditable="true" data-key="wod" data-daily="1" data-ph="Word" style="font-family:var(--font-heading); font-size:clamp(28px,4.2vh,47px); font-weight:700; line-height:1.05; letter-spacing:-1px"></div>
+        <div contenteditable="true" data-key="wodDef" data-daily="1" data-ph="Definition" style="font-size:clamp(18px,2.2vh,24px); line-height:1.3"></div>
+        <div contenteditable="true" data-key="wodSent" data-daily="1" data-ph="Sentence" style="font-size:clamp(16px,2.1vh,21px); line-height:1.3; font-style:italic; color:var(--color-neutral-700)"></div>
         <button onClick="{{ nextWord }}" class="btn btn-ghost" style="font-size:clamp(12px,1.5vh,14px); padding:3px 7px; align-self:flex-start; margin-top:3px; cursor:pointer">New word</button>
       </div>
 
-      <div data-rail="1" style="padding:clamp(10px,1.6vh,16px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:3px; flex:none">
-        <div style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Literary Term</div>
-        <div contenteditable="true" data-key="litTerm" data-daily="1" data-ph="Term" style="font-family:var(--font-heading); font-size:clamp(21px,3vh,32px); font-weight:700; line-height:1.05; letter-spacing:-0.5px"></div>
-        <div contenteditable="true" data-key="litDef" data-daily="1" data-ph="Definition" style="font-size:clamp(14px,1.8vh,19px); line-height:1.3"></div>
+      <div data-rail="1" style="padding:clamp(7px,1.1vh,11px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:3px; flex:none">
+        <div style="font-size:clamp(17px,2.3vh,23px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Literary Term</div>
+        <div contenteditable="true" data-key="litTerm" data-daily="1" data-ph="Term" style="font-family:var(--font-heading); font-size:clamp(25px,3.5vh,38px); font-weight:700; line-height:1.05; letter-spacing:-0.5px"></div>
+        <div contenteditable="true" data-key="litDef" data-daily="1" data-ph="Definition" style="font-size:clamp(17px,2.1vh,23px); line-height:1.3"></div>
       </div>
 
-      <div data-rail="1" style="padding:clamp(10px,1.6vh,16px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:4px; flex:none">
+      <div data-rail="1" style="padding:clamp(7px,1.1vh,11px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:4px; flex:none">
         <div style="font-size:clamp(13px,1.7vh,17px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Countdown</div>
         <div style="display:flex; align-items:baseline; gap:12px">
           <span style="font-family:var(--font-heading); font-size:min(clamp(24px,4vh,46px),14cqw); font-weight:700; line-height:1; letter-spacing:-1.5px; font-variant-numeric:tabular-nums; color:{{ cdColor }}">{{ cdDays }}</span>
@@ -238,7 +238,7 @@
         </div>
       </div>
 
-      <div data-rail="1" style="padding:clamp(12px,2vh,20px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:10px; flex:none">
+      <div data-rail="1" style="padding:clamp(8px,1.3vh,13px) 22px; border-bottom:2px solid var(--color-divider); display:flex; flex-direction:column; gap:8px; flex:none">
         <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px">
           <span style="font-size:clamp(15px,2vh,20px); font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:var(--color-accent-700)">Voice Level</span>
           <span style="font-family:var(--font-heading); font-size:clamp(18px,2.8vh,30px); font-weight:700; color:{{ noiseColor }}">{{ noiseLabel }}</span>
@@ -267,15 +267,15 @@
       </div>
 
       <div data-rail="1" style="padding:clamp(8px,1.3vh,14px) 22px; border-top:2px solid var(--color-divider); display:flex; flex-direction:column; gap:6px; flex:none">
-        <div style="display:flex; align-items:baseline; gap:12px"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">Display</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></div>
-        <div style="display:flex; align-items:center; gap:5px">
+        <button onClick="{{ toggleDisplay }}" style="appearance:none; border:0; background:transparent; padding:0; cursor:pointer; display:flex; align-items:baseline; gap:12px; width:100%; font-family:var(--font-body)" title="Show or hide the display controls"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ displayCaret }} Display</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></button>
+        <div style="display:{{ displayRows }}; align-items:center; gap:5px">
           <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Stars</span>
           <button onClick="{{ bdNone }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgNone }}; color:{{ bdFgNone }}">Off</button>
           <button onClick="{{ bdSubtle }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgSubtle }}; color:{{ bdFgSubtle }}">Low</button>
           <button onClick="{{ bdVisible }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgVisible }}; color:{{ bdFgVisible }}">Med</button>
           <button onClick="{{ bdBold }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgBold }}; color:{{ bdFgBold }}">High</button>
         </div>
-        <div style="display:flex; align-items:center; gap:5px">
+        <div style="display:{{ displayRows }}; align-items:center; gap:5px">
           <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Color</span>
           <button onClick="{{ cycA }}" title="Cycle A period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swA }}; color:{{ swFgA }}">A</button>
           <button onClick="{{ cycD }}" title="Cycle D period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swD }}; color:{{ swFgD }}">D</button>
@@ -333,7 +333,7 @@ const VERSION_KEY = 'cb.version';
 const STORE_VERSION = 2;
 
 class Component extends DCLogic {
-  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0, full: false, settings: (() => {
+  state = { manual: null, dayShift: 0, dayValue: 'auto', now: new Date(), secs: 300, base: 300, running: false, done: false, mic: false, level: 0, full: false, showDisplay: false, settings: (() => {
     // Read synchronously so the board paints with the saved look, not a flash
     // of the defaults.
     try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch (e) { return {}; }
@@ -351,6 +351,9 @@ class Component extends DCLogic {
       return { settings: next };
     });
   }
+  /* Collapsed by default. These are set-once controls, and at the enlarged type
+     sizes the rail cannot afford 115px of permanently visible settings. */
+  toggleDisplay = () => this.setState(s => ({ showDisplay: !s.showDisplay }));
   setBackdrop = level => () => this.setSetting('backdrop', level);
   toggleTheme = () => this.setSetting('theme', this.setting('theme') === 'Dark' ? 'Light' : 'Dark');
   cycleColor = board => () => {
@@ -860,7 +863,10 @@ class Component extends DCLogic {
       swA: CLASS_COLORS.A, swFgA: fgOn(CLASS_COLORS.A),
       swD: CLASS_COLORS.D, swFgD: fgOn(CLASS_COLORS.D),
       swG: CLASS_COLORS.G, swFgG: fgOn(CLASS_COLORS.G),
-      swE: CLASS_COLORS.E, swFgE: fgOn(CLASS_COLORS.E)
+      swE: CLASS_COLORS.E, swFgE: fgOn(CLASS_COLORS.E),
+      toggleDisplay: this.toggleDisplay,
+      displayRows: s.showDisplay ? 'flex' : 'none',
+      displayCaret: s.showDisplay ? '▾' : '▸'
     };
     MY.forEach(b => {
       vals['show' + b] = act === b ? 'block' : 'none';
