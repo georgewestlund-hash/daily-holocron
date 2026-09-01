@@ -104,11 +104,7 @@
       <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap">
         <button onClick="{{ followAuto }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ autoBtn }}">Follow schedule</button>
         <button onClick="{{ goToday }}" class="btn btn-secondary" style="font-size:13px; padding:3px 7px; cursor:pointer; display:{{ todayBtn }}">Back to today</button>
-        <button onClick="{{ toggleFull }}" class="btn btn-secondary" style="font-size:13px; padding:3px 7px; cursor:pointer" title="Full screen (F)">{{ fullLabel }}</button>
-        <button onClick="{{ reloadDeck }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer" title="{{ deckStamp }}">Reload lesson</button>
-        <button onClick="{{ clearSaved }}" class="btn btn-ghost" style="font-size:13px; padding:3px 7px; cursor:pointer">Clear board</button>
       </div>
-      <div style="font-size:11px; color:var(--color-neutral-600); margin-top:4px; max-width:340px; line-height:1.25">{{ deckStamp }}</div>
     </div>
   </header>
 
@@ -267,7 +263,12 @@
       </div>
 
       <div data-rail="1" style="padding:clamp(8px,1.3vh,14px) 22px; border-top:2px solid var(--color-divider); display:flex; flex-direction:column; gap:6px; flex:none">
-        <button onClick="{{ toggleDisplay }}" style="appearance:none; border:0; background:transparent; padding:0; cursor:pointer; display:flex; align-items:baseline; gap:12px; width:100%; font-family:var(--font-body)" title="Show or hide the display controls"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ displayCaret }} Display</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></button>
+        <button onClick="{{ toggleDisplay }}" style="appearance:none; border:0; background:transparent; padding:0; cursor:pointer; display:flex; align-items:baseline; gap:12px; width:100%; font-family:var(--font-body)" title="Show or hide the display controls"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ displayCaret }} Controls</span><span style="flex:1; height:2px; background:var(--color-divider)"></span></button>
+        <div style="display:{{ displayRows }}; align-items:center; gap:5px; flex-wrap:wrap">
+          <button onClick="{{ toggleFull }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Full screen (F)">{{ fullLabel }}</button>
+          <button onClick="{{ reloadDeck }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Discard your edits for this date and re-pull from the slides">Reload lesson</button>
+          <button onClick="{{ clearSaved }}" class="btn btn-ghost" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer">Clear board</button>
+        </div>
         <div style="display:{{ displayRows }}; align-items:center; gap:5px">
           <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Stars</span>
           <button onClick="{{ bdNone }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgNone }}; color:{{ bdFgNone }}">Off</button>
@@ -283,6 +284,7 @@
           <button onClick="{{ cycE }}" title="Cycle E period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swE }}; color:{{ swFgE }}">E</button>
           <button onClick="{{ toggleTheme }}" class="btn btn-secondary" style="flex:none; font-size:clamp(11px,1.4vh,14px); padding:3px 8px; cursor:pointer" title="Switch light and dark">{{ themeLabel }}</button>
         </div>
+        <div style="display:{{ displayBlock }}; font-size:11px; color:var(--color-neutral-600); line-height:1.25">{{ deckStamp }}</div>
       </div>
     </aside>
   </main>
@@ -866,6 +868,7 @@ class Component extends DCLogic {
       swE: CLASS_COLORS.E, swFgE: fgOn(CLASS_COLORS.E),
       toggleDisplay: this.toggleDisplay,
       displayRows: s.showDisplay ? 'flex' : 'none',
+      displayBlock: s.showDisplay ? 'block' : 'none',
       displayCaret: s.showDisplay ? '▾' : '▸'
     };
     MY.forEach(b => {
