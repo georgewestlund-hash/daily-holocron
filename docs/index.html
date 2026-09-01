@@ -420,8 +420,41 @@ class Component extends DCLogic {
     return d;
   }
   refreshDaily = () => { this.wordOffset = 0; this.restore(); this.applyWord(false); this.applyDeck(false); };
-  shiftDay = n => this.setState(s => ({ dayShift: (s.dayShift || 0) + n, dayValue: 'auto', manual: null }), this.refreshDaily);
-  goToday = () => this.setState({ dayShift: 0, dayValue: 'auto', manual: null }, this.refreshDaily);
+  keyOf(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  /* A date the school actually meets. Weekends are absent from CAL entirely;
+     holidays and exam days are present but carry a label rather than a day
+     type, so isClassDay rejects both. */
+  isSchoolDay(d) { return this.isClassDay(CAL[this.keyOf(d)]); }
+  /* Steps to the next or previous school day rather than the next calendar
+     day, so the arrows skip weekends, holidays and breaks instead of landing
+     on an empty board. Winter break is the longest gap at about three weeks;
+     the 200-day bound is really about not spinning past the end of the year,
+     where it stops rather than moving somewhere useless. */
+  shiftDay = n => {
+    const probe = new Date(this.viewDate().getTime());
+    let moved = 0, found = false;
+    for (let i = 0; i < 200 && !found; i++) {
+      probe.setDate(probe.getDate() + n);
+      moved += n;
+      if (this.isSchoolDay(probe)) found = true;
+    }
+    if (!found) return;
+    this.setState(s => ({ dayShift: (s.dayShift || 0) + moved, dayValue: 'auto', manual: null }), this.refreshDaily);
+  };
+  /* Days from today to the school day the board should open on: today when it
+     is one, otherwise the next. Opening on a Saturday to a board that says
+     "does not meet" four times is no use to anyone. */
+  todayShift() {
+    const d = new Date();
+    for (let i = 0; i < 200; i++) {
+      if (this.isSchoolDay(d)) return i;
+      d.setDate(d.getDate() + 1);
+    }
+    return 0;
+  }
+  goToday = () => this.setState({ dayShift: this.todayShift(), dayValue: 'auto', manual: null }, this.refreshDaily);
   dateKey() {
     const d = this.viewDate();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -479,7 +512,12 @@ class Component extends DCLogic {
         const derived = j.calendar || {};
         Object.keys(derived).forEach(d => { if (!(d in CAL)) CAL[d] = derived[d]; });
         this.applyDeck(false);
-        this.setState({ deckState: 'ok' });
+        // Only now does CAL cover the whole year, so this is the first moment
+        // "is today a school day" can be answered for second semester.
+        const shift = this.todayShift();
+        this.setState({ deckState: 'ok' }, () => {
+          if (shift && !this.state.dayShift) this.setState({ dayShift: shift }, this.refreshDaily);
+        });
       })
       .catch(err => {
         console.warn('[board] schedule.json unavailable:', err);
@@ -768,7 +806,7 @@ class Component extends DCLogic {
       prevDay: () => this.shiftDay(-1),
       nextDay: () => this.shiftDay(1),
       goToday: this.goToday,
-      todayBtn: s.dayShift ? 'inline-flex' : 'none',
+      todayBtn: (s.dayShift && s.dayShift !== this.todayShift()) ? 'inline-flex' : 'none',
       dateInk: s.dayShift ? 'var(--color-accent-700)' : 'var(--color-text)',
       dayTypeLabel: t ? (TYPE_LABEL[t] || t) : 'no school',
       dayValue: s.dayValue,
