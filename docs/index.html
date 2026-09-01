@@ -50,14 +50,16 @@
      Two layers per edge: a tight hot bloom right against the line, and a wider
      soft halo behind it. One layer alone either reads as a fringe or as haze;
      the pair is what looks like a beam on a projector. */
-  [data-lz="r"]  { box-shadow: 2px 0 7px -1px var(--color-laser-glow), 5px 0 26px -4px var(--color-laser-glow); }
-  [data-lz="b"]  { box-shadow: 0 2px 7px -1px var(--color-laser-glow), 0 5px 26px -4px var(--color-laser-glow); }
-  [data-lz="rb"] { box-shadow: 2px 0 7px -1px var(--color-laser-glow), 5px 0 26px -4px var(--color-laser-glow), 0 2px 7px -1px var(--color-laser-glow), 0 5px 26px -4px var(--color-laser-glow); }
-  [data-lz="l"]  { box-shadow: -2px 0 7px -1px var(--color-laser-glow), -5px 0 26px -4px var(--color-laser-glow); }
-  [data-lz="t"]  { box-shadow: 0 -2px 7px -1px var(--color-laser-glow), 0 -5px 26px -4px var(--color-laser-glow); }
+     Blur radii and the glow colour's alpha both come from the Glow control, so
+     Off leaves clean unlit rules and High throws a wide bloom. */
+  [data-lz="r"]  { box-shadow: 2px 0 var(--lz-b1) -1px var(--color-laser-glow), 5px 0 var(--lz-b2) -4px var(--color-laser-glow); }
+  [data-lz="b"]  { box-shadow: 0 2px var(--lz-b1) -1px var(--color-laser-glow), 0 5px var(--lz-b2) -4px var(--color-laser-glow); }
+  [data-lz="rb"] { box-shadow: 2px 0 var(--lz-b1) -1px var(--color-laser-glow), 5px 0 var(--lz-b2) -4px var(--color-laser-glow), 0 2px var(--lz-b1) -1px var(--color-laser-glow), 0 5px var(--lz-b2) -4px var(--color-laser-glow); }
+  [data-lz="l"]  { box-shadow: -2px 0 var(--lz-b1) -1px var(--color-laser-glow), -5px 0 var(--lz-b2) -4px var(--color-laser-glow); }
+  [data-lz="t"]  { box-shadow: 0 -2px var(--lz-b1) -1px var(--color-laser-glow), 0 -5px var(--lz-b2) -4px var(--color-laser-glow); }
 </style>
 </helmet>
-<div style="height:100vh; display:flex; flex-direction:column; font-family:var(--font-body); --color-accent:{{ cAccent }}; --color-accent-200:{{ cAccent200 }}; --color-accent-400:{{ cAccent400 }}; --color-accent-600:{{ cAccent600 }}; --color-accent-700:{{ cAccent700 }}; --color-bg:{{ cBg }}; --color-text:{{ cInk }}; --color-divider:{{ cDivider }}; --color-laser:{{ cLaser }}; --color-laser-glow:{{ cLaserGlow }}; --color-neutral-100:{{ cN100 }}; --color-neutral-200:{{ cN200 }}; --color-neutral-500:{{ cN500 }}; --color-neutral-600:{{ cN600 }}; --color-neutral-700:{{ cN700 }}; color:var(--color-text); background-color:var(--color-bg); background-image:{{ bdImage }}; background-size:{{ bdSize }}; animation:{{ flashAnim }}">
+<div style="height:100vh; display:flex; flex-direction:column; font-family:var(--font-body); --color-accent:{{ cAccent }}; --color-accent-200:{{ cAccent200 }}; --color-accent-400:{{ cAccent400 }}; --color-accent-600:{{ cAccent600 }}; --color-accent-700:{{ cAccent700 }}; --color-bg:{{ cBg }}; --color-text:{{ cInk }}; --color-divider:{{ cDivider }}; --color-laser:{{ cLaser }}; --color-laser-glow:{{ cLaserGlow }}; --lz-b1:{{ lzB1 }}; --lz-b2:{{ lzB2 }}; --color-neutral-100:{{ cN100 }}; --color-neutral-200:{{ cN200 }}; --color-neutral-500:{{ cN500 }}; --color-neutral-600:{{ cN600 }}; --color-neutral-700:{{ cN700 }}; color:var(--color-text); background-color:var(--color-bg); background-image:{{ bdImage }}; background-size:{{ bdSize }}; animation:{{ flashAnim }}">
 
   <header data-lz="b" style="display:flex; flex-wrap:wrap; align-items:stretch; border-bottom:3px solid var(--color-laser); flex:none">
     <div style="padding:16px 20px; display:flex; align-items:center; gap:14px; flex:0 1 auto; min-width:0">
@@ -289,6 +291,13 @@
           <button onClick="{{ bdBold }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ bdBgBold }}; color:{{ bdFgBold }}">High</button>
         </div>
         <div style="display:{{ displayRows }}; align-items:center; gap:5px">
+          <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Glow</span>
+          <button onClick="{{ glNone }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ glBgNone }}; color:{{ glFgNone }}">Off</button>
+          <button onClick="{{ glLow }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ glBgLow }}; color:{{ glFgLow }}">Low</button>
+          <button onClick="{{ glMed }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ glBgMed }}; color:{{ glFgMed }}">Med</button>
+          <button onClick="{{ glHigh }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 0; justify-content:center; cursor:pointer; background:{{ glBgHigh }}; color:{{ glFgHigh }}">High</button>
+        </div>
+        <div style="display:{{ displayRows }}; align-items:center; gap:5px">
           <span style="font-size:clamp(11px,1.4vh,14px); text-transform:uppercase; letter-spacing:1.5px; color:var(--color-neutral-600); flex:none; width:44px">Color</span>
           <button onClick="{{ cycA }}" title="Cycle A period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swA }}; color:{{ swFgA }}">A</button>
           <button onClick="{{ cycD }}" title="Cycle D period colour" style="flex:1; font-family:var(--font-heading); font-weight:700; font-size:clamp(11px,1.4vh,14px); padding:3px 0; cursor:pointer; border:2px solid var(--color-divider); background:{{ swD }}; color:{{ swFgD }}">D</button>
@@ -369,6 +378,7 @@ class Component extends DCLogic {
      sizes the rail cannot afford 115px of permanently visible settings. */
   toggleDisplay = () => this.setState(s => ({ showDisplay: !s.showDisplay }));
   setBackdrop = level => () => this.setSetting('backdrop', level);
+  setGlow = level => () => this.setSetting('glow', level);
   toggleTheme = () => this.setSetting('theme', this.setting('theme') === 'Dark' ? 'Light' : 'Dark');
   cycleColor = board => () => {
     const key = 'color' + board;
@@ -785,6 +795,14 @@ class Component extends DCLogic {
     const fgOn = c => { const l = lum(c); return ratio(l, lum('#ffffff')) >= ratio(l, lum('#201e1d')) ? '#ffffff' : '#201e1d'; };
     const light = La > 0.25;
     const laserCore = mix(accent, 'white', dark ? 42 : 10);
+    /* Glow intensity. Med is calibrated to the look this replaced, so an
+       existing board is unchanged until the control is touched. Low pulls the
+       alpha down as well as the radius, since a small blur at full opacity
+       reads as a hard fringe rather than a faint glow. */
+    const glowLevel = this.setting('glow') || 'Med';
+    const glowStep = { Off: { alpha: 0, b1: 0, b2: 0 }, Low: { alpha: 45, b1: 5, b2: 16 },
+                       Med: { alpha: 100, b1: 7, b2: 26 }, High: { alpha: 100, b1: 11, b2: 40 } }[glowLevel]
+                     || { alpha: 100, b1: 7, b2: 26 };
     const backdrop = this.setting('backdrop') || 'Visible';
     const gain = { None: 0, Subtle: 0.55, Visible: 1, Bold: 1.7 }[backdrop] || 0;
     const star = dark ? 'rgba(255,255,255,' : 'rgba(32,30,29,';
@@ -812,7 +830,10 @@ class Component extends DCLogic {
       // a merely coloured rule rather than something hot.
       cDivider: laserCore,
       cLaser: laserCore,
-      cLaserGlow: accent,
+      cLaserGlow: glowStep.alpha === 0 ? 'transparent'
+        : (glowStep.alpha >= 100 ? accent : 'color-mix(in srgb, ' + accent + ' ' + glowStep.alpha + '%, transparent)'),
+      lzB1: glowStep.b1 + 'px',
+      lzB2: glowStep.b2 + 'px',
       cN100: dark ? '#262423' : '#e8e6e5',
       cN200: dark ? '#312e2c' : '#dcd9d7',
       cN500: dark ? '#8a8482' : '#8a8482',
@@ -878,6 +899,18 @@ class Component extends DCLogic {
       bdFgVisible: backdrop === 'Visible' ? accentFg : 'inherit',
       bdBgBold: backdrop === 'Bold' ? accent : 'transparent',
       bdFgBold: backdrop === 'Bold' ? accentFg : 'inherit',
+      glNone: this.setGlow('Off'),
+      glLow: this.setGlow('Low'),
+      glMed: this.setGlow('Med'),
+      glHigh: this.setGlow('High'),
+      glBgNone: glowLevel === 'Off' ? accent : 'transparent',
+      glFgNone: glowLevel === 'Off' ? accentFg : 'inherit',
+      glBgLow: glowLevel === 'Low' ? accent : 'transparent',
+      glFgLow: glowLevel === 'Low' ? accentFg : 'inherit',
+      glBgMed: glowLevel === 'Med' ? accent : 'transparent',
+      glFgMed: glowLevel === 'Med' ? accentFg : 'inherit',
+      glBgHigh: glowLevel === 'High' ? accent : 'transparent',
+      glFgHigh: glowLevel === 'High' ? accentFg : 'inherit',
       cycA: this.cycleColor('A'),
       cycD: this.cycleColor('D'),
       cycG: this.cycleColor('G'),
