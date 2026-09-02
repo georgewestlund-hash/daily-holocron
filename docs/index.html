@@ -359,6 +359,11 @@ const LABELS = { A:'A · 8 Honors Lit', D:'D · 8 Honors Lit', G:'G · 8 Honors 
 // the rail overrides them at runtime and persists the choice.
 const PALETTE = ['#ec3013', '#ff5a1f', '#ffc61a', '#22c55e', '#2563eb', '#1c4f9c', '#1f6b47', '#6b2d5b'];
 const SETTINGS_KEY = 'cb.settings';
+// Fields whose type auto-shrinks to fit its panel. Bring and Due are excluded:
+// they are compact footers, and shrinking them because the bell work ran long
+// would be the wrong lever.
+const FIT_KEYS = ['first5', 'objective', 'lesson', 'homework', 'study'];
+const MIN_FIT = 0.45;   // floor, as a fraction of the size CSS asked for
 const VERSION_KEY = 'cb.version';
 const STORE_VERSION = 3;
 
@@ -417,7 +422,9 @@ class Component extends DCLogic {
       const el = e.target.closest && e.target.closest('[data-key]');
       if (!el) return;
       try { localStorage.setItem(this.keyFor(el), el.innerText); } catch (err) {}
+      this.scheduleFit();
     });
+    window.addEventListener('resize', this.onResize = this.scheduleFit);
     document.addEventListener('keydown', this.onKey = e => {
       if (e.target.isContentEditable || e.target.tagName === 'SELECT') return;
       if (e.code === 'Space') { e.preventDefault(); this.setState(s => ({ running: !s.running, done: false })); }
@@ -436,6 +443,8 @@ class Component extends DCLogic {
     document.removeEventListener('input', this.onEdit);
     document.removeEventListener('keydown', this.onKey);
     document.removeEventListener('fullscreenchange', this.onFull);
+    window.removeEventListener('resize', this.onResize);
+    if (this._fitRaf) cancelAnimationFrame(this._fitRaf);
     if (this.stream) this.stream.getTracks().forEach(t => t.stop());
   }
 
@@ -453,7 +462,14 @@ class Component extends DCLogic {
     d.setDate(d.getDate() + shift);
     return d;
   }
-  refreshDaily = () => { this.wordOffset = 0; this.restore(); this.applyWord(false); this.applyDeck(false); };
+  refreshDaily = () => { this.wordOffset = 0; this.restore(); this.applyWord(false); this.applyDeck(false); this.scheduleFit(); };
+
+  /* Only refit when the visible class actually changed. This runs on every
+     render, including the one-second clock tick, so it must stay cheap. */
+  componentDidUpdate() {
+    const b = this.activeBoard();
+    if (b !== this._fitBoard) { this._fitBoard = b; this.scheduleFit(); }
+  }
   keyOf(d) {
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
@@ -596,8 +612,74 @@ class Component extends DCLogic {
         el.innerText = map[k];
       });
     });
+    this.scheduleFit();
   }
   reloadDeck = () => { this.loadDeck(); this.applyDeck(true); };
+
+  /* ── Fit to box ───────────────────────────────────────────────────────────
+     Shrinks a panel's body text until it stops overflowing, so a long agenda
+     scales down rather than hiding behind a scrollbar the room cannot use.
+
+     The sizes live in inline styles that React owns, so this must not touch
+     el.style: clearing it destroys the basis for measurement, and React puts
+     it back on the next render regardless. The override goes in a stylesheet
+     this component manages instead, which React never looks at.
+
+     That sheet is emptied before each pass, so the natural size is re-read
+     every time and a resize or a shorter lesson goes back up as readily as it
+     came down. !important because both the inline styles and the short-screen
+     media queries have to be beaten. */
+  fitSheet() {
+    if (!this._fitStyle) {
+      this._fitStyle = document.createElement('style');
+      this._fitStyle.id = 'cb-fit';
+      document.head.appendChild(this._fitStyle);
+    }
+    return this._fitStyle;
+  }
+  fitAll = () => {
+    const sec = [].slice.call(document.querySelectorAll('[data-board]'))
+      .find(s => getComputedStyle(s).display !== 'none');
+    if (!sec) return;   // nothing visible to measure
+    const board = sec.getAttribute('data-board');
+    const sheet = this.fitSheet();
+    sheet.textContent = '';   // natural sizes are whatever CSS says with no override
+    const done = [];
+    [].slice.call(sec.querySelectorAll(':scope > div > div')).forEach(cell => {
+      const bodies = [].slice.call(cell.querySelectorAll('[data-key]'))
+        .filter(e => FIT_KEYS.indexOf(e.getAttribute('data-key')) !== -1);
+      if (!bodies.length) return;
+      const natural = bodies.map(e => parseFloat(getComputedStyle(e).fontSize) || 0);
+      if (!natural.every(n => n > 0)) return;
+      // The cell catches anything that pushes the panel over; each body catches
+      // its own scroll, since flex:1 lets a field overflow while the cell stays
+      // exactly the height of its grid row.
+      const over = () => cell.scrollHeight > cell.clientHeight + 1 ||
+        bodies.some(e => e.scrollHeight > e.clientHeight + 1);
+      if (!over()) return;
+      const rulesFor = s => bodies.map((e, i) =>
+        '[data-board="' + board + '"] [data-key="' + e.getAttribute('data-key') + '"]' +
+        '{font-size:' + (natural[i] * s).toFixed(1) + 'px !important}').join('');
+      // Writing to the sheet and then reading scrollHeight forces the layout,
+      // so each probe measures the size it just asked for.
+      const probe = s => { sheet.textContent = done.join('') + rulesFor(s); return over(); };
+      let lo = MIN_FIT, hi = 1;
+      if (probe(lo)) { done.push(rulesFor(lo)); return; }   // floor still overflows
+      for (let i = 0; i < 9; i++) {
+        const mid = (lo + hi) / 2;
+        if (probe(mid)) hi = mid; else lo = mid;
+      }
+      probe(lo);
+      done.push(rulesFor(lo));   // largest scale that fits
+    });
+    sheet.textContent = done.join('');
+  };
+  /* Fitting thrashes layout, so it is never done on the clock tick — only when
+     the content, the date, the class or the window has actually changed. */
+  scheduleFit = () => {
+    if (this._fitRaf) cancelAnimationFrame(this._fitRaf);
+    this._fitRaf = requestAnimationFrame(this.fitAll);
+  };
 
   /* Fullscreen has to originate from a user gesture, so this is only ever
      called from the button or a keypress. Vendor-prefixed fallback is for
