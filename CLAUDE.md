@@ -422,6 +422,34 @@ the document holding the whole year's planning, drafts included. A stranger who
 mines the repo history for deck ids gets 8th-grade Literature lesson plans that
 the students already have through the LMS.
 
+## Idea parked: writing board edits back to the sheet
+
+Raised 2026-09-04, deferred. Today a board edit lives in `localStorage` only —
+that device, that date — so an on-the-fly change in class never reaches the
+sheet, the other devices, or the decks. Making it flow back is feasible; the
+notes below are the parts that are already settled or already known to bite.
+
+**Write to `Lesson Planner`, never `Master Data`.** Master Data's content
+columns are formulas pointing back at Lesson Planner
+(`=IF('Lesson Planner'!C39="","",…)`). Writing a value into one replaces the
+formula and silently breaks that row for good. The target cell arithmetic is
+already worked out in `tools/generate-lesson-planner-repair.ps1`: 18-row stride
+per cycle block, fixed row offset per field, column = lesson number. With
+`rotation.json` that makes *(period, date)* → cell a solved mapping.
+
+**No write credential can live in the board.** It is a static page in a public
+repo, so an endpoint URL or token in its JS is public — and this is *write*
+access, unlike the sheet id. The workable shape is an Apps Script Web App on
+the spreadsheet, with the board reading its endpoint and token from
+`localStorage`, pasted in once per device. Nothing sensitive enters the repo.
+
+**The decision that unblocks it: HP's three periods share one sheet row.** A, D
+and G are one row per lesson, so an edit made during A period rewrites what D
+and G will later read; the sheet cannot express "just for A". So: does a board
+edit change all three, or do per-period tweaks stay board-only, or do only the
+daily fields (`first5`, `materials`, `due`) write back? A conflict rule is
+needed too — a board edit currently shadows the sheet on that device forever.
+
 ## Conventions
 
 - **PowerShell 5.1 compatible.** No `&&` / `||`, no ternary, no `??`. The script
