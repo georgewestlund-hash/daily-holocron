@@ -409,9 +409,18 @@ the id out of the public repo or the published JSON. Real protection means the
 sheet stops being link-shared and the fetch authenticates with a service
 account key in Actions secrets — a bigger change, not currently done.
 
-Already public and not recoverable by these guards: the two retired deck ids,
-which sit in committed history and in `schedule.json` versions already
-deployed. Un-sharing those decks in Drive is the only way to close them.
+**The decks are a deliberate exception, not a leak.** Their ids sit in committed
+history and in already-deployed `schedule.json` versions, and both decks are
+still world-readable by id (verified 2026-09-04: anonymous `export/pptx`
+returns a real .pptx, ~150 KB each). That cannot be closed and **should not
+be** — they are embedded in Veracross, the school's LMS, so link-sharing is
+what makes them work. Do not propose restricting them.
+
+So the model is: **decks are student-facing by design; the sheet is
+teacher-side and stays unlisted.** The guards above protect the sheet, which is
+the document holding the whole year's planning, drafts included. A stranger who
+mines the repo history for deck ids gets 8th-grade Literature lesson plans that
+the students already have through the LMS.
 
 ## Conventions
 
@@ -522,11 +531,29 @@ distinct causes look identical from the classroom, and only one is a cache:
    this one.** The "Reload lesson" button does: it calls `applyDeck(true)`,
    which clears the stored value first.
 
-### Not fixable from here
+### The student-facing channel is the decks, not the board
 
-- **The two retired deck ids are already public** — in committed history, and in
-  `schedule.json` versions already deployed. Un-sharing those decks in Google
-  Drive is the only way to close them.
+Worth being precise about, because it relocates a concern that was analysed in
+the wrong place.
+
+The [publication horizon](#publication-horizon--built-currently-off) exists so
+unfinished planning is not published to students, and it is **off** because the
+board's URL is not shared with anyone. That reasoning holds for the board.
+
+But the decks **are** shared with students — they are embedded in Veracross —
+and `sync-sheet-to-slides.gs` has no horizon at all. It pushes whatever Master
+Data holds for whatever cycles are in scope. So the risk the horizon was built
+for lives here instead:
+
+- A half-drafted cycle synced early is **immediately visible to students** in
+  the LMS.
+- Worse, it is **effectively permanent**, because `ONLY_FILL_EMPTY_CELLS` is
+  `true`: once a deck cell is filled the sheet can no longer correct it. Fixing
+  the sheet updates the board and leaves the deck showing the draft.
+
+The lever is scoping, not a horizon: set `ONLY_SEMESTER` and `ONLY_CYCLES` to
+the cycle actually being taught, and run `preview` first. Syncing the whole
+sheet in one go is what to avoid while later cycles are still drafts.
 
 ### Done (kept for context)
 
