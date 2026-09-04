@@ -20,11 +20,19 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      warningCount: ${{ steps.warnings.outputs.count }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Re-extract schedule from Google Slides
+      # The sheet id comes from the SHEET_ID repo variable, not from the code:
+      # this repo is public and the planning sheet is link-shared. If the
+      # variable is missing the extractor stops with an explanatory error
+      # rather than silently building an empty board.
+      - name: Rebuild schedule from the planning Google Sheet
         shell: pwsh
+        env:
+          HOLOCRON_SHEET_ID: ${{ vars.SHEET_ID }}
         run: ./extract-schedule.ps1
 
       - name: Commit schedule.json if it changed
@@ -33,26 +41,45 @@ jobs:
             git config user.name  "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add docs/data/schedule.json
-            git commit -m "chore: refresh schedule from slides deck"
+            git commit -m "chore: refresh schedule from planning sheet"
             git push
           else
             echo "No change in schedule.json"
           fi
 
+      # Surface the extractor's warnings as annotations and hand the count to
+      # the report-warnings job. Deliberately does NOT fail here: a warning
+      # means one lesson cannot be displayed, and the rest of the board should
+      # still deploy.
+      - name: Collect schedule warnings
+        id: warnings
+        shell: pwsh
+        run: |
+          $j = Get-Content docs/data/schedule.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          $w = @($j.warnings)
+          foreach ($x in $w) { Write-Host "::warning title=schedule.json::$x" }
+          Write-Host "$($w.Count) warning(s)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "count=$($w.Count)"
+
       # Publishing is opt-in. A private repo on a free plan cannot serve Pages,
       # and leaving the deploy enabled would fail every run. To turn it on later,
       # set the repository variable ENABLE_PAGES to "true" (Settings > Secrets and
       # variables > Actions > Variables) and set Pages' source to GitHub Actions.
-      - if: vars.ENABLE_PAGES == 'true'
+      #
+      # The github.ref guard means a workflow_dispatch run on a branch exercises
+      # the extractor, the JSON output and the report-warnings job WITHOUT
+      # touching the live board. That is the only way to test the pwsh-on-Linux
+      # behaviour before it reaches main.
+      - if: vars.ENABLE_PAGES == 'true' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
-      - if: vars.ENABLE_PAGES == 'true'
+      - if: vars.ENABLE_PAGES == 'true' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
   deploy:
     needs: refresh
-    if: vars.ENABLE_PAGES == 'true'
+    if: vars.ENABLE_PAGES == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -60,3 +87,21 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Fails the run when the extractor reported anything, so a mistake in the
+  # sheet arrives as a failure notification instead of sitting unread in a log.
+  # Typical cause: a lesson planned in a column that cycle does not actually
+  # have, so the content can never reach the board.
+  #
+  # This is a sibling of deploy, not a gate on it: both need only `refresh`, so
+  # the board still publishes while the warning is being flagged.
+  report-warnings:
+    needs: refresh
+    if: needs.refresh.outputs.warningCount != '0'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail with the warning count
+        run: |
+          echo "schedule.json reported ${{ needs.refresh.outputs.warningCount }} warning(s)."
+          echo "See the 'Collect schedule warnings' step of the refresh job for details."
+          exit 1
