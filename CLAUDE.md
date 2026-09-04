@@ -472,40 +472,55 @@ are gated on `github.ref == 'refs/heads/main'`, so a branch run tests the
 pipeline end to end and publishes nothing. It does commit `schedule.json` to
 that branch, which is the point.
 
-## Status: built and verified, NOT yet switched over
+## Status: LIVE since 2026-09-04
 
-As of 2026-09-02 the whole sheet migration sits **uncommitted in the working
-tree**. The live board still runs the old Slides-deck pipeline from commit
-`e3bd9a1` and re-reads the decks every six hours. Nothing degrades while it
-waits; it simply has not changed over.
+The board runs on the planning sheet. [PR #1][pr1] merged as `961d89e`, and the
+`main` push triggered the switchover run.
 
-Verified locally: 24 Master Data rows → 48 matched slots, 0 warnings, two
-consecutive runs byte-identical, and the board renders the seven fields with
-correct line breaks.
+[pr1]: https://github.com/georgewestlund-hash/daily-holocron/pull/1
 
-### To finish the switch
+Verified on the live site, not just locally:
 
-Three sheet edits first — none of them block a deploy, but all three publish
-wrong content if left:
+| Check | Result |
+|---|---|
+| CI run on `main` | success — `refresh` 14s, `deploy` 9s |
+| `report-warnings` job | *skipped*, as designed: 0 warnings means its `if` is false |
+| Byte-identical JSON under `pwsh` on Linux | "no change at all — file left byte-identical" |
+| Sheet id in the public Actions log | masked to `sheet ...s52s` |
+| Live `/data/schedule.json` | sheet-derived; no id, no export URL |
+| Live `/data/deck-<id>.pptx` (both decks) | **404** — previously HTTP 200, ~160 KB each |
 
-1. **Clear `First 5` for S1 cycle 6 HP, lessons 1–5.** It says `TESTING`, and
-   the board will display it.
-2. **`Cycle Calendar!E4` → `6`** and **`Lesson Planner!I38` → greyed `N/A`.**
-   Cycle 3 has six lessons; these two still say seven and generate the two
-   phantom Master Data rows.
+The `SHEET_ID` Actions variable exists. Repo variables are visible only to
+accounts with repo access, so this is not the same exposure as putting the id
+in the source.
 
-Then:
+### Merging cost two conflict resolutions, and would cost more if it had waited
 
-3. **Create the `SHEET_ID` repo variable.** CI reads the sheet id from it; the
-   value is in the gitignored `sheet-id.local`. Without it the extractor stops
-   with an explanatory error rather than publishing an empty board.
-   `gh variable set SHEET_ID --body "<id>" --repo georgewestlund-hash/daily-holocron`
-4. **Commit and push.** The push triggers the workflow, which is the first real
-   exercise of three things untestable locally: the byte-identical JSON logic
-   under `pwsh` on Linux, the new `report-warnings` job, and the board actually
-   switching to sheet data.
-5. **Check the deploy.** The deck files should start returning 404 from the live
-   site, because the new extractor no longer downloads into `docs/`.
+`main`'s six-hourly job kept committing a deck-derived `schedule.json` while the
+branch was replacing that pipeline, so the PR conflicted on a wholly derived
+file — twice, once mid-session. Resolved each time by re-running the extractor
+rather than hand-merging minified JSON: the sheet is the authority.
+
+Nothing to guard against now — the old job *is* the new pipeline — but the shape
+is worth remembering for any future long-lived branch that touches
+`docs/data/schedule.json`.
+
+### First 5 that "did not sync"
+
+Reported once on the day of the switch; a hard refresh fixed it, and all 15
+sheet rows carrying `First 5` were verified present in `schedule.json`. Two
+distinct causes look identical from the classroom, and only one is a cache:
+
+1. **Stale page.** The board fetches with `cache: 'no-store'`, but Pages' CDN
+   caches `schedule.json` briefly and the page only loads it once. A hard
+   refresh is the fix.
+2. **`localStorage` wins.** `applyDeck` returns early when a stored value
+   exists for that `(date, key)` — `if (saved !== null && saved !== '') return`.
+   `first5`, `materials` and `due` were hand-typed for months before they became
+   sheet-backed, so on any board where they were typed, the old text
+   *permanently* shadows the sheet for that date. **A hard refresh will not fix
+   this one.** The "Reload lesson" button does: it calls `applyDeck(true)`,
+   which clears the stored value first.
 
 ### Not fixable from here
 

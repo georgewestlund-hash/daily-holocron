@@ -567,7 +567,9 @@ $sources = @(
     [pscustomobject]@{
         kind     = 'rotation-skeleton'
         path     = 'data/rotation.json'
-        frozenAt = $rotation.frozenAt
+        # build-rotation.ps1 writes generatedAt; the retired freeze script wrote
+        # frozenAt. Accept either so provenance is never published as null.
+        builtAt  = $(if ($rotation.generatedAt) { $rotation.generatedAt } else { $rotation.frozenAt })
         slots    = @($rotation.slots).Count
     }
 )
