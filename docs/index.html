@@ -287,7 +287,7 @@
         <button onClick="{{ toggleDisplay }}" style="appearance:none; border:0; background:transparent; padding:0; cursor:pointer; display:flex; align-items:baseline; gap:12px; width:100%; font-family:var(--font-body)" title="Show or hide the display controls"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ displayCaret }} Controls</span><span style="flex:1; height:3px; background:var(--color-laser); box-shadow:0 0 9px -1px var(--color-laser-glow)"></span></button>
         <div style="display:{{ displayRows }}; align-items:center; gap:5px; flex-wrap:wrap">
           <button onClick="{{ toggleFull }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Full screen (F)">{{ fullLabel }}</button>
-          <button onClick="{{ reloadDeck }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Discard your edits for this date and re-pull from the slides">Reload lesson</button>
+          <button onClick="{{ reloadDeck }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Discard your edits for this date and re-pull from the planning sheet">Reload lesson</button>
           <button onClick="{{ clearSaved }}" class="btn btn-ghost" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer">Clear board</button>
         </div>
         <div style="display:{{ displayRows }}; align-items:center; gap:5px">
@@ -543,9 +543,11 @@ class Component extends DCLogic {
   nextWord = () => { this.wordOffset = (this.wordOffset || 0) + 1; this.applyWord(true); };
 
   /* ── Deck data ────────────────────────────────────────────────────────────
-     data/schedule.json is regenerated from the two Google Slides decks every
-     six hours by .github/workflows/refresh.yml. It carries one record per
-     (period, date) plus a derived date -> day-type calendar. */
+     data/schedule.json is rebuilt every six hours by
+     .github/workflows/refresh.yml, which joins the planning Google Sheet's
+     "Master Data" tab against the frozen rotation skeleton in
+     data/rotation.json. It carries one record per (period, date) plus the
+     date -> day-type calendar. */
   loadDeck() {
     fetch('data/schedule.json', { cache: 'no-store' })
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -557,7 +559,7 @@ class Component extends DCLogic {
         });
         this.deck = { meta: j, byPeriodDate: idx };
         // CAL above is hand-authored and carries holiday and exam labels the
-        // decks cannot express. It wins; the derived calendar only fills gaps
+        // the sheet cannot express. It wins; the generated calendar only fills gaps
         // (notably all of second semester, which CAL does not cover).
         const derived = j.calendar || {};
         Object.keys(derived).forEach(d => { if (!(d in CAL)) CAL[d] = derived[d]; });
@@ -579,7 +581,7 @@ class Component extends DCLogic {
     const byDate = this.deck.byPeriodDate[board];
     return byDate ? byDate[this.dateKey()] || null : null;
   }
-  /* Fills the four deck-backed fields. Anything you have typed for this date
+  /* Fills the seven sheet-backed fields. Anything you have typed for this date
      is left alone unless force is set, matching how applyWord treats the word
      of the day. */
   applyDeck(force) {
@@ -590,10 +592,13 @@ class Component extends DCLogic {
       const rec = this.deckRecord(board);
       const lines = a => (a && a.length ? a.join('\n') : '');
       const map = {
+        first5: rec ? (rec.first5 || '') : '',
+        materials: rec ? (rec.materials || '') : '',
         objective: rec ? (rec.objective || '') : '',
         lesson: rec ? lines(rec.lesson) : '',
         study: rec ? lines(rec.study) : '',
-        homework: rec ? lines(rec.homework) : ''
+        homework: rec ? lines(rec.homework) : '',
+        due: rec ? (rec.due || '') : ''
       };
       Object.keys(map).forEach(k => {
         const el = sec.querySelector('[data-key="' + k + '"]');
@@ -605,7 +610,7 @@ class Component extends DCLogic {
         if (saved !== null && saved !== '') return;   // your own edit wins
         // Deck text is deliberately NOT written to storage. Storage holds only
         // what you typed, via the input listener. Caching the deck value here
-        // would shadow any later edit to the slides, since a cached copy is
+        // would shadow any later edit to the sheet, since a cached copy is
         // indistinguishable from a real edit on the next load. Assigning even
         // an empty string also clears the previous date's text when you page
         // to a day the decks have nothing for.

@@ -1,5 +1,18 @@
-# Downloaded deck — regenerated on every extractor run, no reason to version it.
+# The sheet id. Kept out of the repo because this repository is public and the
+# planning sheet is link-shared; see the comment block in extract-schedule.ps1.
+# In CI the id comes from the SHEET_ID Actions variable instead.
+sheet-id.local
+
+# Downloaded source documents. These live OUTSIDE docs/ on purpose: the Pages
+# artifact uploads the whole docs/ tree as it stands on the runner, gitignored
+# files and all, so anything cached in there gets served publicly.
+.cache/
+
+# Historical: earlier versions downloaded into docs/data. The extractor now
+# deletes any leftovers, but keep these ignored so a stale file cannot be
+# committed by accident.
 docs/data/deck-*.pptx
+docs/data/sheet-*.xlsx
 docs/data/*.tmp
 
 # Local scratch
