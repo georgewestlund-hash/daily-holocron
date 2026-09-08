@@ -22,8 +22,22 @@ The rotation skeleton feeds only the board. The decks carry their own rotation
 grids and their own lesson numbering, read at run time — see
 *The slide decks*, below.
 
-`.github/workflows/refresh.yml` runs the extractor every 6 hours, commits
-`schedule.json` **only if it changed**, and deploys `docs/` to Pages.
+`.github/workflows/refresh.yml` runs the extractor **every 10 minutes through
+the school day** (11:00–21:59 UTC, weekdays) and twice daily outside it, commits
+`schedule.json` **only if it changed**, and deploys `docs/` to Pages. So a sheet
+edit reaches the board within a period rather than the next day.
+
+Two caveats that come with the tight cadence: GitHub delays scheduled runs under
+load, so 10 minutes often lands 10–25 late; and it disables scheduled workflows
+in a repo with no commits for 60 days, which a long quiet spell could trigger
+since the refresh only commits when the data actually changed.
+
+**The board cannot reach the sheet directly.** It only ever fetches the
+published `schedule.json`, so "Reload lesson" discards your local edits and
+re-reads that file — it cannot pull a sheet change the pipeline has not picked
+up yet. Closing that gap would need a live read endpoint; see
+*Idea parked: writing board edits back to the sheet* for why a credential
+cannot live in the page.
 
 Pages publishing is **opt-in**: the deploy steps are gated on the repo variable
 `ENABLE_PAGES == 'true'`. A private repo on a free plan cannot serve Pages, so
@@ -362,7 +376,7 @@ real loss for no gain. Change the default to `2` (or `7`) if the address is
 ever handed out. The mechanism is finished and tested; only the default is off.
 
 - The current cycle is always open, so same-day edits still land on the next
-  6-hourly run. The horizon changes *what* is published, never how often.
+  scheduled run. The horizon changes *what* is published, never how often.
 - Cycle starts come from `rotation.json` (earliest slot date per
   `semester|cycle`), **not** from the sheet's `Cycle Calendar` — which is the
   tab that had the cycle-3 miscount.
@@ -533,7 +547,7 @@ in the source.
 
 ### Merging cost two conflict resolutions, and would cost more if it had waited
 
-`main`'s six-hourly job kept committing a deck-derived `schedule.json` while the
+`main`'s scheduled job kept committing a deck-derived `schedule.json` while the
 branch was replacing that pipeline, so the PR conflicted on a wholly derived
 file — twice, once mid-session. Resolved each time by re-running the extractor
 rather than hand-merging minified JSON: the sheet is the authority.

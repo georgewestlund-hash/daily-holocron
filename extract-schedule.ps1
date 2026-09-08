@@ -625,7 +625,8 @@ $json = [regex]::Replace($json, '(?<!\\)\\u00(26|3[ce]|27)',
 $json = [regex]::Replace($json, '[^\x00-\x7F]', { param($m) '\u{0:x4}' -f [int][char]$m.Value })
 
 # generatedAt alone would differ on every run and commit a file whose data is
-# unchanged, which is exactly the churn the six-hourly job must not produce.
+# unchanged, which is exactly the churn the scheduled job must not produce -
+# and it now runs every 10 minutes through the school day, not every 6 hours.
 # When nothing but the clock moved, keep the old stamp and the old bytes. The
 # field then means "when the lesson data last changed", which is what the board
 # reports and what anyone actually wants to know.

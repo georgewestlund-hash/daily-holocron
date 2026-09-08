@@ -2,8 +2,23 @@ name: Refresh schedule and deploy board
 
 on:
   schedule:
-    # Every 6 hours, at :13 past to stay off the busy top-of-hour tick. Times are UTC.
-    - cron: '13 */6 * * *'
+    # Cron is UTC only - GitHub has no timezone support here.
+    #
+    # Every 10 minutes through the school day, so an edit to the planning sheet
+    # reaches the board within a period rather than the next day. 11:00-21:59
+    # UTC covers 7am-5pm during EDT and 6am-4pm during EST, so the window holds
+    # across the autumn clock change without being touched.
+    - cron: '*/10 11-21 * * 1-5'
+    # And twice outside it, every day, so evening and weekend planning is
+    # already on the board before the first class.
+    - cron: '13 1,23 * * *'
+    #
+    # Runs cost nothing (Actions is free on public repos) and the extractor
+    # takes ~15s, but note two things about GitHub's scheduler: it delays
+    # scheduled runs under load - 10 minutes often lands 10-25 late - and it
+    # disables scheduled workflows in a repo with no commits for 60 days. The
+    # refresh only commits when the data actually changed, so a long quiet
+    # spell is what would trip that.
   push:
     branches: [main]
   workflow_dispatch:

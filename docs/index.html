@@ -287,7 +287,7 @@
         <button onClick="{{ toggleDisplay }}" style="appearance:none; border:0; background:transparent; padding:0; cursor:pointer; display:flex; align-items:baseline; gap:12px; width:100%; font-family:var(--font-body)" title="Show or hide the display controls"><span style="font-size:clamp(12px,1.5vh,15px); font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--color-neutral-600)">{{ displayCaret }} Controls</span><span style="flex:1; height:3px; background:var(--color-laser); box-shadow:0 0 9px -1px var(--color-laser-glow)"></span></button>
         <div style="display:{{ displayRows }}; align-items:center; gap:5px; flex-wrap:wrap">
           <button onClick="{{ toggleFull }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Full screen (F)">{{ fullLabel }}</button>
-          <button onClick="{{ reloadDeck }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Discard your edits for this date and re-pull from the planning sheet">Reload lesson</button>
+          <button onClick="{{ reloadDeck }}" class="btn btn-secondary" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer" title="Discard your edits for this date and reload the published lesson data. This does not re-read the sheet itself - that happens on a schedule, every 10 minutes during the school day.">Reload lesson</button>
           <button onClick="{{ clearSaved }}" class="btn btn-ghost" style="flex:1; font-size:clamp(11px,1.4vh,14px); padding:3px 6px; justify-content:center; cursor:pointer">Clear board</button>
         </div>
         <div style="display:{{ displayRows }}; align-items:center; gap:5px">
@@ -543,11 +543,15 @@ class Component extends DCLogic {
   nextWord = () => { this.wordOffset = (this.wordOffset || 0) + 1; this.applyWord(true); };
 
   /* ── Deck data ────────────────────────────────────────────────────────────
-     data/schedule.json is rebuilt every six hours by
-     .github/workflows/refresh.yml, which joins the planning Google Sheet's
-     "Master Data" tab against the frozen rotation skeleton in
-     data/rotation.json. It carries one record per (period, date) plus the
-     date -> day-type calendar. */
+     data/schedule.json is rebuilt by .github/workflows/refresh.yml, which
+     joins the planning Google Sheet's "Master Data" tab against the rotation
+     skeleton in data/rotation.json. It carries one record per (period, date)
+     plus the date -> day-type calendar.
+
+     The schedule runs every 10 minutes through the school day, so a sheet edit
+     lands within a period. This board only ever reads the published file - it
+     never reaches the sheet itself, which is why "Reload lesson" cannot pull a
+     change the pipeline has not picked up yet. */
   loadDeck() {
     fetch('data/schedule.json', { cache: 'no-store' })
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
