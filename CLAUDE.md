@@ -27,10 +27,23 @@ the school day** (11:00–21:59 UTC, weekdays) and twice daily outside it, commi
 `schedule.json` **only if it changed**, and deploys `docs/` to Pages. So a sheet
 edit reaches the board within a period rather than the next day.
 
-Two caveats that come with the tight cadence: GitHub delays scheduled runs under
-load, so 10 minutes often lands 10–25 late; and it disables scheduled workflows
-in a repo with no commits for 60 days, which a long quiet spell could trigger
-since the refresh only commits when the data actually changed.
+**The real cadence is 15–22 minutes, not 10.** Measured 2026-09-09: runs landed
+at 11:09, 11:26, 11:41, 11:56, 12:16, 12:38 UTC. GitHub throttles scheduled
+workflows under load and `*/10` is a request, not a promise. Asking for a
+shorter interval will not help — it is already being ignored. If minute-level
+freshness is ever needed, that is a live read endpoint, not a cron change.
+
+The other caveat: GitHub disables scheduled workflows in a repo with no commits
+for 60 days, which a long quiet spell could trigger since the refresh only
+commits when the data actually changed.
+
+**The download retries.** Google's export endpoint hangs occasionally, and at
+~68 runs a day that stopped being rare — run `34350076553` on 2026-09-09 died on
+a bare 120-second timeout, and the next run succeeded. It is a ~50 KB file, so
+slow means broken, not big: three attempts at a 60-second timeout with 10s and
+20s backoff, ~3m30s worst case. Giving up is still safe — nothing is overwritten
+until the download passes its zip check, so the board keeps serving the last
+good data. Without this, a single hiccup fails the build and emails you.
 
 **The board cannot reach the sheet directly.** It only ever fetches the
 published `schedule.json`, so "Reload lesson" discards your local edits and

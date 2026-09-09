@@ -368,7 +368,46 @@ $exportUrl = "https://docs.google.com/spreadsheets/d/$SheetId/export?format=xlsx
 # The URL contains the id, so log the masked tag instead of the URL.
 Write-Host "Fetching xlsx export of $sheetTag"
 $tmp = "$xlsxPath.tmp"
-Invoke-WebRequest -Uri $exportUrl -OutFile $tmp -UseBasicParsing -TimeoutSec 120
+
+<#
+  Google's export endpoint hangs occasionally. It is a ~50 KB file, so a slow
+  response means something is wrong rather than something is big - hence a
+  short per-attempt timeout and a retry, instead of one long wait.
+
+  This matters more than it used to. At four runs a day a transient failure was
+  rare enough to ignore; at ~68 it surfaces regularly, and because a non-empty
+  warnings[] fails the build, every one of them sends a failure email. Retrying
+  keeps the mail meaningful. Seen for real on 2026-09-09: run 34350076553 died
+  on the old bare 120s timeout, and the very next run succeeded.
+
+  Worst case here is ~3 minutes before giving up, and giving up is still safe -
+  nothing has been overwritten at that point, so the board keeps serving the
+  last good data.
+#>
+$attempts = 3
+$downloaded = $false
+$lastError = $null
+for ($try = 1; $try -le $attempts; $try++) {
+    try {
+        if (Test-Path $tmp) { Remove-Item $tmp -Force }
+        Invoke-WebRequest -Uri $exportUrl -OutFile $tmp -UseBasicParsing -TimeoutSec 60
+        $downloaded = $true
+        break
+    } catch {
+        $lastError = $_
+        if ($try -lt $attempts) {
+            $wait = 10 * $try
+            Write-Host ("  attempt {0} of {1} failed ({2}); retrying in {3}s" -f
+                $try, $attempts, $_.Exception.Message, $wait)
+            Start-Sleep -Seconds $wait
+        }
+    }
+}
+if (-not $downloaded) {
+    throw ("Could not fetch the sheet export after {0} attempts. Aborting; previous schedule.json left intact. Last error: {1}" -f
+        $attempts, $lastError.Exception.Message)
+}
+if ($try -gt 1) { Write-Host ("  succeeded on attempt {0}" -f $try) }
 
 # A permission failure returns an HTML error page, not a zip. Bail out before
 # overwriting anything, so a de-shared sheet leaves the last good file intact.
