@@ -375,7 +375,7 @@ $tmp = "$xlsxPath.tmp"
   short per-attempt timeout and a retry, instead of one long wait.
 
   This matters more than it used to. At four runs a day a transient failure was
-  rare enough to ignore; at ~68 it surfaces regularly, and because a non-empty
+  rare enough to ignore; at 24 it still surfaces, and because a non-empty
   warnings[] fails the build, every one of them sends a failure email. Retrying
   keeps the mail meaningful. Seen for real on 2026-09-09: run 34350076553 died
   on the old bare 120s timeout, and the very next run succeeded.
@@ -665,7 +665,7 @@ $json = [regex]::Replace($json, '[^\x00-\x7F]', { param($m) '\u{0:x4}' -f [int][
 
 # generatedAt alone would differ on every run and commit a file whose data is
 # unchanged, which is exactly the churn the scheduled job must not produce -
-# and it now runs every 10 minutes through the school day, not every 6 hours.
+# and it now runs hourly, not every 6 hours.
 # When nothing but the clock moved, keep the old stamp and the old bytes. The
 # field then means "when the lesson data last changed", which is what the board
 # reports and what anyone actually wants to know.

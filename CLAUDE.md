@@ -22,28 +22,32 @@ The rotation skeleton feeds only the board. The decks carry their own rotation
 grids and their own lesson numbering, read at run time — see
 *The slide decks*, below.
 
-`.github/workflows/refresh.yml` runs the extractor **every 10 minutes through
-the school day** (11:00–21:59 UTC, weekdays) and twice daily outside it, commits
-`schedule.json` **only if it changed**, and deploys `docs/` to Pages. So a sheet
-edit reaches the board within a period rather than the next day.
+`.github/workflows/refresh.yml` runs the extractor **hourly, at :13 past**,
+commits `schedule.json` **only if it changed**, and deploys `docs/` to Pages.
+So a sheet edit reaches the board within the hour.
 
-**The real cadence is 15–22 minutes, not 10.** Measured 2026-09-09: runs landed
-at 11:09, 11:26, 11:41, 11:56, 12:16, 12:38 UTC. GitHub throttles scheduled
-workflows under load and `*/10` is a request, not a promise. Asking for a
-shorter interval will not help — it is already being ignored. If minute-level
-freshness is ever needed, that is a live read endpoint, not a cron change.
+The `:13` is deliberate: GitHub queues the most scheduled work at the top of the
+hour, so asking for `:00` is asking to be throttled.
+
+**A shorter interval was tried and is not worth it.** A `*/10` school-day window
+ran 2026-09-08 to 09-09 and was never honoured — runs landed at 11:09, 11:26,
+11:41, 11:56, 12:16, 12:38 UTC, so 15–22 minutes apart. GitHub throttles
+scheduled workflows under load; `*/10` is a request, not a promise. Hourly also
+cuts ~68 runs a day to 24, which matters because each run is another chance for
+a transient Google timeout. If minute-level freshness is ever wanted, that is a
+live read endpoint, not a cron change.
 
 The other caveat: GitHub disables scheduled workflows in a repo with no commits
 for 60 days, which a long quiet spell could trigger since the refresh only
 commits when the data actually changed.
 
-**The download retries.** Google's export endpoint hangs occasionally, and at
-~68 runs a day that stopped being rare — run `34350076553` on 2026-09-09 died on
-a bare 120-second timeout, and the next run succeeded. It is a ~50 KB file, so
-slow means broken, not big: three attempts at a 60-second timeout with 10s and
-20s backoff, ~3m30s worst case. Giving up is still safe — nothing is overwritten
-until the download passes its zip check, so the board keeps serving the last
-good data. Without this, a single hiccup fails the build and emails you.
+**The download retries.** Google's export endpoint hangs occasionally — run
+`34350076553` on 2026-09-09 died on a bare 120-second timeout, and the next run
+succeeded. It is a ~50 KB file, so slow means broken, not big: three attempts at
+a 60-second timeout with 10s and 20s backoff, ~3m30s worst case. Giving up is
+still safe — nothing is overwritten until the download passes its zip check, so
+the board keeps serving the last good data. Without this, a single hiccup fails
+the build and emails you.
 
 **The board cannot reach the sheet directly.** It only ever fetches the
 published `schedule.json`, so "Reload lesson" discards your local edits and

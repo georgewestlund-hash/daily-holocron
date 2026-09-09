@@ -2,23 +2,24 @@ name: Refresh schedule and deploy board
 
 on:
   schedule:
-    # Cron is UTC only - GitHub has no timezone support here.
+    # Hourly, at :13 past. Cron is UTC only - GitHub has no timezone support -
+    # but hourly needs no school-day window, so the clock changes never matter
+    # and evening and weekend planning is picked up like anything else.
     #
-    # Every 10 minutes through the school day, so an edit to the planning sheet
-    # reaches the board within a period rather than the next day. 11:00-21:59
-    # UTC covers 7am-5pm during EDT and 6am-4pm during EST, so the window holds
-    # across the autumn clock change without being touched.
-    - cron: '*/10 11-21 * * 1-5'
-    # And twice outside it, every day, so evening and weekend planning is
-    # already on the board before the first class.
-    - cron: '13 1,23 * * *'
+    # The :13 is deliberate. GitHub queues the most scheduled work at the top of
+    # the hour, so asking for :00 is asking to be throttled.
     #
-    # Runs cost nothing (Actions is free on public repos) and the extractor
-    # takes ~15s, but note two things about GitHub's scheduler: it delays
-    # scheduled runs under load - 10 minutes often lands 10-25 late - and it
-    # disables scheduled workflows in a repo with no commits for 60 days. The
-    # refresh only commits when the data actually changed, so a long quiet
-    # spell is what would trip that.
+    # This replaced a */10 school-day window that was never actually honoured:
+    # measured 2026-09-09, those runs landed 15-22 minutes apart, because
+    # GitHub throttles scheduled workflows under load. A shorter interval buys
+    # very little, and 24 runs a day rather than ~68 means far fewer chances for
+    # a transient Google timeout to fail a run. If minute-level freshness is
+    # ever wanted, that is a live read endpoint, not a cron change.
+    - cron: '13 * * * *'
+    #
+    # One thing to keep in mind: GitHub disables scheduled workflows in a repo
+    # with no commits for 60 days. The refresh only commits when the data
+    # actually changed, so a long quiet spell is what would trip that.
   push:
     branches: [main]
   workflow_dispatch:
