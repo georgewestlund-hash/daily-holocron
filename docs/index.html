@@ -331,6 +331,29 @@ const FIXED = {
   Bn: { E:'8:40 – 9:50', F:'9:55 – 11:05', G:'11:10 – 12:20' }
 };
 const TYPE_LABEL = { '1':'Day 1','2':'Day 2','3':'Day 3','4':'Day 4','5':'Day 5','6':'Day 6','7':'Day 7', X:'X Day', A:'A Block', B:'B Block — late start', Bn:'B Block — no late start' };
+
+/* Days that keep their rotation but not its clock — an assembly, a parade, an
+   exam morning. Keyed by DATE, not by day type, because that is what a modified
+   day actually is: the same periods in the same order, moved.
+
+   Keeping it off the day type matters. CAL still says 2026-10-23 is a Day 3, so
+   the rotation, the lesson numbering and every lesson's content stay exactly
+   right; only the bell times move. Inventing a "modified Day 3" type instead
+   would have to be taught to ROT_DAYS, FIXED, build-rotation.ps1 and the
+   skeleton, for no gain.
+
+   To add one: copy the school's bell schedule in, period by period, including
+   periods this board does not show (B, C, F) so the table stays readable
+   against the printed version. `label` is optional and replaces the day name in
+   the header, so the room can see why the times look unusual. */
+const BELL_OVERRIDE = {
+  // Homecoming: all five Day 3 blocks compressed into the morning, then lunches,
+  // homeroom, the parade and activities. No academic periods after 12:20.
+  '2026-10-23': {
+    label: 'Day 3 — modified',
+    times: { D:'8:40 – 9:20', E:'9:25 – 10:05', F:'10:10 – 10:50', G:'10:55 – 11:35', A:'11:40 – 12:20' }
+  }
+};
 const CAL = {
   '2026-08-13':'X','2026-08-14':'1','2026-08-17':'2','2026-08-18':'3','2026-08-19':'4','2026-08-20':'5','2026-08-21':'6',
   '2026-08-24':'7','2026-08-25':'A','2026-08-26':'B','2026-08-27':'1','2026-08-28':'2',
@@ -768,8 +791,14 @@ class Component extends DCLogic {
     return CAL[key] || null;
   }
   isClassDay(t) { return !!(t && (ROT_DAYS[t] || FIXED[t])); }
+  bellOverride() { return BELL_OVERRIDE[this.dateKey()] || null; }
   blockTimes(t) {
     if (!this.isClassDay(t)) return {};
+    // Checked before FIXED and before the ROT_SLOTS zip, so one entry corrects
+    // every consumer at once: the period tabs, the "starts in N min" countdown
+    // and the auto-follow ordering all read blockTimes.
+    const over = this.bellOverride();
+    if (over) return over.times;
     if (FIXED[t]) return FIXED[t];
     const out = {};
     ROT_DAYS[t].forEach((b, i) => { out[b] = ROT_SLOTS[i]; });
@@ -962,7 +991,7 @@ class Component extends DCLogic {
       goToday: this.goToday,
       todayBtn: (s.dayShift && s.dayShift !== this.todayShift()) ? 'inline-flex' : 'none',
       dateInk: s.dayShift ? 'var(--color-accent-700)' : 'var(--color-text)',
-      dayTypeLabel: t ? (TYPE_LABEL[t] || t) : 'no school',
+      dayTypeLabel: t ? (((this.bellOverride() || {}).label) || TYPE_LABEL[t] || t) : 'no school',
       dayValue: s.dayValue,
       onDayChange: e => this.setState({ dayValue: e.target.value, manual: null }, this.refreshDaily),
       timeStr: this.fmtClock(d),

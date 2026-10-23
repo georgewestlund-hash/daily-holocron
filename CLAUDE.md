@@ -233,6 +233,8 @@ still say "deck" for historical reasons; the source is the sheet.
 - `const CAL = {...}` (~line 334) — hand-authored day-type calendar carrying
   holiday/exam labels the sheet cannot express. **CAL wins**; the generated
   `calendar` only fills gaps (notably all of second semester).
+- `const BELL_OVERRIDE = {...}` (~line 335) — **modified days**, keyed by date.
+  See below.
 - Fields are `contenteditable` elements keyed by `data-key`. Those marked
   `data-daily="1"` persist per-date (storage key suffixed with the date).
 - `applyDeck()` (~line 588) fills the seven sheet-backed keys. Anything the
@@ -241,6 +243,36 @@ still say "deck" for historical reasons; the source is the sheet.
   indistinguishable from a real edit on the next load.
 - `FIT_KEYS` auto-shrink type to fit their panel rather than scrolling. `Bring`
   and `Due` are deliberately excluded (single-line fields).
+
+### Modified days (`BELL_OVERRIDE`)
+
+An assembly, a parade or an exam morning keeps the rotation but moves the clock.
+`BELL_OVERRIDE` is keyed by **date**, holds `{ label?, times }`, and
+`blockTimes()` checks it before `FIXED` and before the `ROT_SLOTS` zip — so one
+entry corrects the period tabs, the "starts in N min" countdown and the
+auto-follow ordering together.
+
+```js
+'2026-10-23': {
+  label: 'Day 3 — modified',
+  times: { D:'8:40 – 9:20', E:'9:25 – 10:05', F:'10:10 – 10:50', … }
+}
+```
+
+**Key it by date, not by inventing a day type.** `CAL` still calls 2026-10-23 a
+Day 3, so the rotation, the lesson numbering and every lesson's content stay
+right; only the bell times move. A "modified Day 3" type would instead have to
+be taught to `ROT_DAYS`, `FIXED`, `build-rotation.ps1` and the skeleton, and
+would risk shifting lesson numbers — for no gain.
+
+Copy the school's bell schedule in period by period, including periods this
+board does not render (B, C, F), so the table can be read against the printed
+version. `label` is optional and replaces the day name in the header, which is
+what tells the room the unusual times are deliberate.
+
+First real case, 2026-10-23: Homecoming compressed all five Day 3 blocks into
+the morning. The board had been showing G at 1:20 and A at 2:20 when they
+actually met at 10:55 and 11:40 — hours out, and the countdown with it.
 
 ### Field keys
 
